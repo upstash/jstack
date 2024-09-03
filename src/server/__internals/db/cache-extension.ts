@@ -85,7 +85,7 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
 
           const result = await (ctx as any).$parent[
             ctx.$name as any
-          ].findUnique(rest)
+          ].findMany(rest)
 
           if (cache && result) {
             await redis.set(cache.id, result)
