@@ -5,7 +5,7 @@ import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
 
 const getBaseUrl = () => {
-  return "https://stacktest.joshtriedcoding.workers.dev/"
+  return "http://localhost:3000/"
 }
 
 export const baseClient = hc<AppType>(getBaseUrl(), {
