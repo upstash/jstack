@@ -1,8 +1,7 @@
 import { HTTPException } from "hono/http-exception"
 import { z } from "zod"
-import { publicProcedure } from "../procedures"
 import { router } from "../__internals/router"
-import { env } from "hono/adapter"
+import { publicProcedure } from "../procedures"
 
 export const postRouter = router({
   recent: publicProcedure.query(async ({ c, ctx }) => {
