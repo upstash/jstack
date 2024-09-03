@@ -5,12 +5,14 @@ import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
 
 const getBaseUrl = () => {
-  return "http://localhost:3000/"
+  return process.env.NODE_ENV === "development"
+    ? "http://localhost:3000/"
+    : "https://<YOUR_DEPLOYED_WORKER_URL>/"
 }
 
 export const baseClient = hc<AppType>(getBaseUrl(), {
   fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
-    const response = await fetch(input, init)
+    const response = await fetch(input, { ...init, cache: "no-store" })
 
     if (!response.ok) {
       throw new HTTPException(response.status as StatusCode, {

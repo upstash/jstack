@@ -7,7 +7,10 @@ import { cn } from "@/utils"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
-const eb_garamond = EB_Garamond({ subsets: ["latin"], variable: "--font-heading" })
+const eb_garamond = EB_Garamond({
+  subsets: ["latin"],
+  variable: "--font-heading",
+})
 
 export const metadata: Metadata = {
   title: "jStack App",
@@ -21,7 +24,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={cn(inter.variable, eb_garamond.variable)}>
+    <html
+      suppressHydrationWarning
+      lang="en"
+      className={cn(inter.variable, eb_garamond.variable)}
+    >
       <body className="font-sans bg-brand-50 text-brand-950 antialiased">
         <Providers>{children}</Providers>
       </body>
