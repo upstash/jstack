@@ -1,6 +1,8 @@
 import { RecentPost } from "./components/post"
 import { client } from "./lib/client"
 
+export const dynamic = "force-dynamic"
+
 export default async function Home() {
   const recentPost = await client.post.recent.$get()
   const initialData = await recentPost.json()
