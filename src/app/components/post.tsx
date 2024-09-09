@@ -3,19 +3,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { client } from "../lib/client"
-import { Post } from "@prisma/client"
 
-export const RecentPost = ({ initialData }: { initialData: Post }) => {
+export const RecentPost = () => {
   const [name, setName] = useState<string>("")
   const queryClient = useQueryClient()
 
-  const { data: recentPost, isPending: isLoadingPosts } = useQuery<Post>({
+  const { data: recentPost, isPending: isLoadingPosts } = useQuery({
+    queryKey: ["get-recent-post"],
     queryFn: async () => {
       const res = await client.post.recent.$get()
       return await res.json()
     },
-    queryKey: ["get-recent-post"],
-    initialData,
   })
 
   const createPost = useMutation({

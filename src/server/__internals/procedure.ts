@@ -28,7 +28,7 @@ export class Procedure<ctx = {}> {
      * Optional, but recommended:
      * This makes "c.superjson" available to your API routes
      */
-    this.use(({ c, next }) => {
+    this.use(async ({ c, next }) => {
       type JSONRespond = typeof c.json
 
       c.superjson = (<T>(data: T, status?: StatusCode): Response => {
@@ -41,7 +41,7 @@ export class Procedure<ctx = {}> {
         })
       }) as JSONRespond
 
-      return next({})
+      return await next()
     })
   }
 
@@ -52,7 +52,7 @@ export class Procedure<ctx = {}> {
       c,
     }: {
       ctx: ctx
-      next: <B>(args: B) => Promise<B & ctx>
+      next: <B>(args?: B) => Promise<B & ctx>
       c: Context<{ Bindings: Bindings }>
     }) => Promise<Return>
   ): Procedure<ctx & T & Return> {

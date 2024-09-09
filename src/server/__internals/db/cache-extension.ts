@@ -1,7 +1,14 @@
-import { Prisma, PrismaClient } from "@prisma/client"
-import { Redis } from "@upstash/redis/cloudflare"
+import { Prisma } from "@prisma/client";
+import { Redis } from "@upstash/redis/cloudflare";
+import superjson, { SuperJSONResult } from "superjson";
 
 export type CacheArgs = { cache?: { id: string; ttl?: number } }
+
+function isSuperJSONResult(obj: any): obj is SuperJSONResult {
+  return (
+    typeof obj === "object" && obj !== null && "json" in obj && "meta" in obj
+  )
+}
 
 /**
  * The Prisma extension to provide built-in caching with Upstash Redis
@@ -21,10 +28,13 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
           const ctx = Prisma.getExtensionContext(this)
 
           if (cache) {
-            const cachedResult = await redis.get<
-              Prisma.Result<T, A, "findFirst">
-            >(cache.id)
-            if (cachedResult) return cachedResult
+            const cachedResult = await redis.get<string>(cache.id)
+
+            if (cachedResult && isSuperJSONResult(cachedResult)) {
+              return superjson.deserialize<Prisma.Result<T, A, "findFirst">>(
+                cachedResult
+              )
+            }
           }
 
           const result = await (ctx as any).$parent[ctx.$name as any].findFirst(
@@ -32,10 +42,12 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
           )
 
           if (cache && result) {
+            const serializedResult = superjson.stringify(result)
+
             if (cache.ttl) {
-              await redis.set(cache.id, result, { ex: cache.ttl })
+              await redis.set(cache.id, serializedResult, { ex: cache.ttl })
             } else {
-              await redis.set(cache.id, result)
+              await redis.set(cache.id, serializedResult)
             }
           }
 
@@ -50,11 +62,13 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
           const ctx = Prisma.getExtensionContext(this)
 
           if (cache) {
-            const cachedResult = await redis.get<
-              Prisma.Result<T, A, "findUnique">
-            >(cache.id)
+            const cachedResult = await redis.get<string>(cache.id)
 
-            if (cachedResult) return cachedResult
+            if (cachedResult && isSuperJSONResult(cachedResult)) {
+              return superjson.deserialize<Prisma.Result<T, A, "findUnique">>(
+                cachedResult
+              )
+            }
           }
 
           const result = await (ctx as any).$parent[
@@ -62,7 +76,13 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
           ].findUnique(rest)
 
           if (cache && result) {
-            await redis.set(cache.id, result)
+            const serializedResult = superjson.stringify(result)
+
+            if (cache.ttl) {
+              await redis.set(cache.id, serializedResult, { ex: cache.ttl })
+            } else {
+              await redis.set(cache.id, serializedResult)
+            }
           }
 
           return result
@@ -76,24 +96,31 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
           const ctx = Prisma.getExtensionContext(this)
 
           if (cache) {
-            const cachedResult = await redis.get<
-              Prisma.Result<T, A, "findMany">
-            >(cache.id)
+            const cachedResult = await redis.get<string>(cache.id)
 
-            if (cachedResult) return cachedResult
+            if (cachedResult && isSuperJSONResult(cachedResult)) {
+              return superjson.deserialize<Prisma.Result<T, A, "findMany">>(
+                cachedResult
+              )
+            }
           }
 
-          const result = await (ctx as any).$parent[
-            ctx.$name as any
-          ].findMany(rest)
+          const result = await (ctx as any).$parent[ctx.$name as any].findMany(
+            rest
+          )
 
           if (cache && result) {
-            await redis.set(cache.id, result)
+            const serializedResult = superjson.stringify(result)
+
+            if (cache.ttl) {
+              await redis.set(cache.id, serializedResult, { ex: cache.ttl })
+            } else {
+              await redis.set(cache.id, serializedResult)
+            }
           }
 
           return result
         },
-
         async create<T, A>(
           this: T,
           args: Prisma.Args<T, "create"> & CacheArgs
@@ -112,7 +139,6 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
 
           return result
         },
-
         async update<T, A>(
           this: T,
           args: Prisma.Args<T, "update"> & CacheArgs
@@ -131,7 +157,6 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
 
           return result
         },
-
         async delete<T, A>(
           this: T,
           args: Prisma.Args<T, "delete"> & CacheArgs
@@ -154,7 +179,3 @@ export const cacheExtension = ({ redis }: { redis: Redis }) => {
     },
   })
 }
-
-type Extension = ReturnType<typeof cacheExtension>
-export type ExtendedPrismaClient = PrismaClient &
-  Omit<Extension, "$extends" | "name" | "model" | "query">
