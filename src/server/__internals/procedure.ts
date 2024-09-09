@@ -21,28 +21,34 @@ export type SuperJSONTypedResponse<
 > = TypedResponse<SuperJSONParsedType<T>, U, "json">
 
 export class Procedure<ctx = {}> {
-  middlewares: Middleware<ctx>[] = []
+  private readonly middlewares: Middleware<ctx>[] = []
 
-  constructor() {
-    /**
-     * Optional, but recommended:
-     * This makes "c.superjson" available to your API routes
-     */
-    this.use(async ({ c, next }) => {
+  /**
+   * Optional, but recommended:
+   * This makes "c.superjson" available to your API routes
+   */
+  private superjsonMiddleware: Middleware<ctx> =
+    async function superjsonMiddleware({ c, next }) {
       type JSONRespond = typeof c.json
 
       c.superjson = (<T>(data: T, status?: StatusCode): Response => {
         const serialized = superjson.stringify(data)
         return new Response(serialized, {
           status: status || 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         })
       }) as JSONRespond
 
       return await next()
-    })
+    }
+
+  constructor(middlewares: Middleware<ctx>[] = []) {
+    this.middlewares = middlewares
+
+    // add built-in superjson middleware if not already present
+    if (!this.middlewares.some((mw) => mw.name === "superjsonMiddleware")) {
+      this.middlewares.push(this.superjsonMiddleware)
+    }
   }
 
   use<T, Return = void>(
@@ -56,8 +62,7 @@ export class Procedure<ctx = {}> {
       c: Context<{ Bindings: Bindings }>
     }) => Promise<Return>
   ): Procedure<ctx & T & Return> {
-    this.middlewares.push(fn as any)
-    return this as Procedure<ctx & T & Return>
+    return new Procedure<ctx & T & Return>([...this.middlewares, fn as any])
   }
 
   input = <Schema extends Record<string, unknown>>(

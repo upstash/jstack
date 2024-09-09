@@ -11,7 +11,7 @@ export type Middleware<I> = ({
   c,
 }: {
   ctx: I
-  next: <B>(args: B) => B & I
+  next: <B>(args?: B) => B & I
   c: Context<{ Bindings: Bindings; Variables: Variables }>
 }) => Promise<any>
 

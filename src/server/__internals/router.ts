@@ -41,7 +41,7 @@ export const router = <T extends Record<string, OperationType<any, any>>>(
   Object.entries(obj).forEach(([key, operation]) => {
     const path = `/${key}` as const
 
-    const allMws: MiddlewareHandler[] = operation.middlewares.map(
+    const operationMiddlewares: MiddlewareHandler[] = operation.middlewares.map(
       (middleware) => {
         const wrapperFunction = async (c: Context, next: Next) => {
           const ctx = c.get("__middleware_output") ?? {}
@@ -63,28 +63,33 @@ export const router = <T extends Record<string, OperationType<any, any>>>(
 
     if (operation.type === "query") {
       if (operation.schema) {
-        route.get(path, queryParsingMiddleware, ...allMws, (c) => {
-          const ctx = c.get("__middleware_output") || {}
-          const parsedQuery = c.get("parsedQuery")
+        route.get(
+          path,
+          queryParsingMiddleware,
+          ...operationMiddlewares,
+          (c) => {
+            const ctx = c.get("__middleware_output") || {}
+            const parsedQuery = c.get("parsedQuery")
 
-          let input
-          try {
-            input = operation.schema?.parse(parsedQuery)
-          } catch (err) {
-            if (err instanceof ZodError) {
-              throw new HTTPException(400, {
-                cause: err,
-                message: err.message,
-              })
-            } else {
-              throw err
+            let input
+            try {
+              input = operation.schema?.parse(parsedQuery)
+            } catch (err) {
+              if (err instanceof ZodError) {
+                throw new HTTPException(400, {
+                  cause: err,
+                  message: err.message,
+                })
+              } else {
+                throw err
+              }
             }
-          }
 
-          return operation.handler({ c, ctx, input })
-        })
+            return operation.handler({ c, ctx, input })
+          }
+        )
       } else {
-        route.get(path, ...allMws, (c) => {
+        route.get(path, ...operationMiddlewares, (c) => {
           const ctx = c.get("__middleware_output") || {}
 
           return operation.handler({ c, ctx, input: undefined })
@@ -92,28 +97,33 @@ export const router = <T extends Record<string, OperationType<any, any>>>(
       }
     } else if (operation.type === "mutation") {
       if (operation.schema) {
-        route.post(path, bodyParsingMiddleware, ...allMws, (c) => {
-          const ctx = c.get("__middleware_output") || {}
-          const parsedBody = c.get("parsedBody")
+        route.post(
+          path,
+          bodyParsingMiddleware,
+          ...operationMiddlewares,
+          (c) => {
+            const ctx = c.get("__middleware_output") || {}
+            const parsedBody = c.get("parsedBody")
 
-          let input
-          try {
-            input = operation.schema?.parse(parsedBody)
-          } catch (err) {
-            if (err instanceof ZodError) {
-              throw new HTTPException(400, {
-                cause: err,
-                message: err.message,
-              })
-            } else {
-              throw err
+            let input
+            try {
+              input = operation.schema?.parse(parsedBody)
+            } catch (err) {
+              if (err instanceof ZodError) {
+                throw new HTTPException(400, {
+                  cause: err,
+                  message: err.message,
+                })
+              } else {
+                throw err
+              }
             }
-          }
 
-          return operation.handler({ c, ctx, input })
-        })
+            return operation.handler({ c, ctx, input })
+          }
+        )
       } else {
-        route.post(path, ...allMws, (c) => {
+        route.post(path, ...operationMiddlewares, (c) => {
           const ctx = c.get("__middleware_output") || {}
 
           return operation.handler({ c, ctx, input: undefined })
