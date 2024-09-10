@@ -12,12 +12,6 @@ export const postRouter = router({
       cache: { id: "recent-post" },
     })
 
-    if (!recentPost) {
-      throw new HTTPException(404, {
-        message: "No post found",
-      })
-    }
-
     return c.superjson(recentPost)
   }),
 
