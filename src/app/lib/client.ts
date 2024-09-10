@@ -3,9 +3,10 @@ import { hc } from "hono/client"
 import { HTTPException } from "hono/http-exception"
 import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
+import {env} from "@/env"
 
 const getBaseUrl = () => {
-  return process.env.NODE_ENV === "development"
+  return env.NODE_ENV === "development"
     ? "http://localhost:3000/"
     : "https://<YOUR_DEPLOYED_WORKER_URL>/"
 }
