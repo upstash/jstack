@@ -21,20 +21,24 @@ export const baseClient = hc<AppType>(getBaseUrl(), {
       })
     }
 
-    const serializedJson = await response.text()
-    const deserializedJson = superjson.parse(serializedJson)
+    const contentType = response.headers.get("Content-Type")
 
-    const superJSONResponse = new Response(JSON.stringify(deserializedJson), {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    })
+    response.json = async () => {
+      const text = await response.text()
 
-    Object.defineProperty(superJSONResponse, "json", {
-      value: async () => deserializedJson,
-    })
+      if (contentType === "application/superjson") {
+        return superjson.parse(text)
+      }
 
-    return superJSONResponse
+      try {
+        return JSON.parse(text)
+      } catch (error) {
+        console.error("Failed to parse response as JSON:", error)
+        throw new Error("Invalid JSON response")
+      }
+    }
+
+    return response
   },
 })["api"]
 

@@ -35,7 +35,7 @@ export class Procedure<ctx = {}> {
         const serialized = superjson.stringify(data)
         return new Response(serialized, {
           status: status || 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/superjson" },
         })
       }) as JSONRespond
 
