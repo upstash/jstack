@@ -11,11 +11,84 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
+enum Plan {
+  FREE
+  PRO
+}
+
+
+
+model User {
+  id         String  @id @default(cuid())
+  externalId String? @unique
+
+  quotaLimit Int
+  plan       Plan @default(FREE)
+
+  email     String   @unique
+  apiKey    String   @unique @default(cuid())
+  discordId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([name])
+  EventCategories EventCategory[]
+  events           Event[]
+  Quota           Quota[]
+
+  @@index([email, apiKey])
+}
+
+model EventCategory {
+  id    String  @id @default(cuid())
+  name  String
+  color Int
+  emoji String?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events     Event[]
+
+  @@unique([name, userId])
+}
+
+enum DeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+}
+
+model Event {
+  id               String @id @default(cuid())
+  formattedMessage String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  name   String
+  fields Json
+
+  deliveryStatus DeliveryStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  EventCategory   EventCategory? @relation(fields: [eventCategoryId], references: [id])
+  eventCategoryId String?
+
+  @@index([createdAt])
+}
+
+model Quota {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  year  Int
+  month Int
+  count Int @default(0)
+
+  updatedAt DateTime @updatedAt
 }

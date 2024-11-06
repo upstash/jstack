@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { client } from "../lib/client"
+import { client } from "../../lib/client"
 
 export const RecentPost = () => {
   const [name, setName] = useState<string>("")
