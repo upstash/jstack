@@ -1,7 +1,5 @@
 "use client"
 
-// synchronize auth status to database
-
 import { Heading } from "../../components/heading"
 import { LoadingSpinner } from "../../components/loading-spinner"
 import { client } from "@/lib/client"
