@@ -9,11 +9,6 @@ import { client } from "./lib/client"
 export default async function Home() {
   const res = await client.post.recent.$get()
   const recentPost = await res.json()
-
-  /**
-   * This is the intended way to prefetch data on the server to have it immediately available in the client.
-   * But: you could also just pass the post as a prop instead of using the `HydrationBoundary`
-   */
   const queryClient = new QueryClient()
 
   await queryClient.prefetchQuery({

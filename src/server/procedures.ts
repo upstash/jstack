@@ -41,3 +41,4 @@ const extendedDatabaseMiddleware = j.middleware(async ({ c, next }) => {
  */
 export const baseProcedure = j.procedure
 export const publicProcedure = baseProcedure.use(extendedDatabaseMiddleware)
+// export const publicProcedure = baseProcedure

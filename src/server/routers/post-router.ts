@@ -23,7 +23,7 @@ export const postRouter = router({
 
       const post = await db.post.create({
         data: { name },
-        cache: { id: "recent-post" },
+        // cache: { id: "recent-post" },
       })
 
       return c.superjson({ ...post })
