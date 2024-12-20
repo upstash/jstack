@@ -1,8 +1,15 @@
 "use client"
 
-import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query"
 import { HTTPException } from "hono/http-exception"
 import { PropsWithChildren, useState } from "react"
+import { Toaster } from "./ui/sonner"
+import { SessionProvider } from "next-auth/react"
+import AuthProvider from "../features/auth/components/auth-provider"
 
 export const Providers = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(
@@ -25,5 +32,8 @@ export const Providers = ({ children }: PropsWithChildren) => {
       })
   )
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster />
+  </QueryClientProvider>
 }

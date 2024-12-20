@@ -1,21 +1,129 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+    provider        = "prisma-client-js"
+    previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum UserRole {
+    USER
+    ADMIN
+}
 
-  @@index([name])
+model User {
+    id                    String                 @id @default(cuid())
+    name                  String?
+    email                 String?                @unique
+    emailVerified         DateTime?              @map("email_verified")
+    image                 String?
+    password              String?
+    role                  UserRole               @default(USER)
+    isTwoFactorEnabled    Boolean                @default(false)
+    twoFactorConfirmation TwoFactorConfirmation?
+    accounts              Account[]
+
+    @@map("users")
+}
+
+model Account {
+    id                String  @id @default(cuid())
+    userId            String  @map("user_id")
+    type              String
+    provider          String
+    providerAccountId String  @map("provider_account_id")
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? @db.Text
+    session_state     String?
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+    @@map("accounts")
+}
+
+model VerificationToken {
+    id      String   @id @unique @default(cuid())
+    email   String
+    token   String   @unique
+    expires DateTime
+
+    @@unique([email, token])
+}
+
+model PasswordResetToken {
+    id      String   @id @unique @default(cuid())
+    email   String
+    token   String   @unique
+    expires DateTime
+
+    @@unique([email, token])
+}
+
+model TwoFactorToken {
+    id      String   @id @unique @default(cuid())
+    email   String
+    token   String   @unique
+    expires DateTime
+
+    @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+    id     String @id @default(cuid())
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([userId])
+}
+
+model Product {
+    id               String      @id @unique @default(cuid())
+    name             String
+    fullDescription  String
+    shortDescription String?
+    variants         Variant[]
+    category         Category?    @relation(fields: [categoryId], references: [id])
+    categoryId       String
+    subcategory      Subcategory? @relation(fields: [subcategoryId], references: [id])
+    subcategoryId    String
+}
+
+model Category {
+    id           String         @id @unique @default(cuid())
+    name         String
+    products     Product[]
+    subcategories Subcategory[] // New relationship with Subcategory
+}
+
+model Subcategory {
+    id          String         @id @unique @default(cuid())
+    name        String
+    category    Category        @relation(fields: [categoryId], references: [id]) // Link to Category
+    categoryId  String
+    products    Product[]
+}
+
+model Image {
+    id        String  @id @unique @default(cuid())
+    imageId   String  @unique()
+    imageUrl  String
+    variant   Variant @relation(fields: [variantId], references: [id])
+    variantId String
+}
+
+model Variant {
+    id        String  @id @unique @default(cuid())
+    name      String
+    images    Image[]
+    price     Float
+    stock     Int
+    product   Product @relation(fields: [productId], references: [id])
+    productId String
 }
