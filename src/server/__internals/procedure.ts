@@ -65,7 +65,7 @@ export class Procedure<ctx = {}> {
     return new Procedure<ctx & T & Return>([...this.middlewares, fn as any])
   }
 
-  input = <Schema extends Record<string, unknown>>(
+  input = <Schema extends Record<string, unknown> | Record<string, unknown>[]>(
     schema: z.ZodSchema<Schema>
   ) => ({
     query: <Output>(
