@@ -1,0 +1,175 @@
+---
+title: AppRouter
+summary: The AppRouter in JStack
+---
+
+# appRouter Overview
+
+The `appRouter` in JStack:
+
+- Routes requests to the procedure that handles them
+- Serves as an entry point to deploy your backend
+
+```plaintext JStack File Structure {4}
+app/
+  └── server/
+      ├── jstack.ts        # Initialize JStack
+      ├── index.ts         # Main appRouter
+      └── routers/         # Router directory
+          ├── user-router.ts
+          ├── post-router.ts
+          └── ...
+```
+
+An `appRouter` knows all the routes and their handlers; deploying your backend is as easy as deploying the `appRouter`. Since JStack is built on top of Hono, you can deploy this router anywhere: Vercel, Netlify, Cloudflare, AWS, Railway, etc.
+
+---
+
+## Creating the appRouter
+
+An `appRouter` is built on top of a base `api` that defines global behaviors. For example, where your API is served from, error handling, 404 response handling, or global middleware:
+
+```ts server/index.ts {4,11}
+import { j } from "./jstack"
+import { postRouter } from "./routers/post-router"
+
+// 1️⃣ Creating the base API with global configuration
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+// 2️⃣ Merging with feature routers
+const appRouter = j.mergeRouters(api, {
+  post: postRouter,
+})
+
+export type AppRouter = typeof appRouter
+export default appRouter
+```
+
+---
+
+## Configuration Options
+
+All JStack routers are lightweight, minimal extensions built on top of the [Hono API](https://hono.dev/docs/api/hono). Any method you can call on the Hono API, you can also call on JStack routers:
+
+- Global error handling
+- 404 response handling
+- [View all available methods](https://hono.dev/docs/api/hono)
+
+Here are the most common methods:
+
+---
+
+### Error Handling
+
+I recommend using JStacks default error handler via `j.defaults.errorHandler`. It catches all router errors and returns standardized error responses that you can easily handle on the frontend.
+
+```ts server/index.ts {7}
+import { j } from "../jstack"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+```
+
+```tsx app/page.tsx {4, 13-15}
+"use client"
+
+import { useMutation } from "@tanstack/react-query"
+import { HTTPException } from "hono/http-exception"
+import { client } from "@/lib/client"
+
+export default function Page() {
+  const { mutate: createPost } = useMutation({
+    mutationFn: async () => {
+      const res = await client.post.create.$post()
+      return await res.json()
+    },
+    onError: (err: HTTPException) => {
+      console.log(err.message)
+    },
+  })
+
+  return <button onClick={() => createPost()}>Create Post</button>
+}
+```
+
+You can also customize error handling if needed:
+
+```ts
+api.onError((err, c) => {
+  console.error(`${err}`)
+  return c.text("Custom Error Message", 500)
+})
+```
+
+---
+
+### Base Path
+
+To configure where your API is served from, adjust the `basePath` parameter and rename your api directory to match this new path:
+
+```ts {4}
+// 👇 Serve all routes under /api/*
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+```
+
+<Frame>
+  <Image src="/change-api-dirname.png" />
+</Frame>
+
+---
+
+### CORS
+
+Nobody likes CORS (🤮), but it's a necessary evil for security reasons. I recommend using JStack's default CORS middleware:
+
+```ts server/index {2,8}
+import { InferRouterInputs, InferRouterOutputs } from "jstack"
+import { j } from "./jstack"
+import { postRouter } from "./routers/post-router"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+```
+
+You can also customize CORS if needed using [Hono's built-in CORS middleware](https://hono.dev/docs/middleware/builtin/cors). In this case, it's very important to whitelist the `x-is-superjson` header, as JStack uses this internally for `c.superjson()` responses:
+
+```ts {4-5}
+import { cors } from "hono/cors"
+
+cors({
+  allowHeaders: ["x-is-superjson"],
+  exposeHeaders: ["x-is-superjson"],
+  origin: (origin) => origin, // default: allow any origin
+  credentials: true, // default: allow credentials
+})
+```
+
+---
+
+### Inferring Router Inputs/Outputs
+
+```ts
+import type { AppRouter } from "./jstack"
+import type { InferRouterInputs, InferRouterOutputs } from "jstack"
+
+type InferInput = InferRouterInputs<AppRouter>
+type InferOutput = InferRouterOutputs<AppRouter>
+
+// 👇 Usage: InferInput[<router>][<procedure>]
+type Input = InferInput["post"]["example"]
+type Output = InferOutput["post"]["example"]
+````

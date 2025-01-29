@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "strict": true,
+    "lib": ["ES2019", "DOM", "DOM.Iterable", "ES2015.Iterable"],
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "noEmit": true,
+    "types": ["@types/node"],
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*", "./package.json"],
+  "exclude": ["src/**/*.test.ts", "node_modules"]
+}

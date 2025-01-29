@@ -1,0 +1,41 @@
+---
+title: Key Features
+summary: This is my first post
+---
+
+# Key Features
+
+## 1. Ultra fast & Lightweight
+
+Built on top of Hono's lightweight [RegExpRouter](https://hono.dev/docs/concepts/routers#regexprouter) and [Drizzle ORM](https://orm.drizzle.team/), which, unlike Prisma, does not ship a massive query engine, JStack is fast. With a single click, you can deploy your Next.js server to globally distributed Cloudflare workers for maximum performance.
+
+You can follow the Vercel pattern (coming soon) to get the same performance on Vercel, Netlify, Railway and other deployment platforms.
+
+---
+
+## 2. End-to-end Type-Safe
+
+Type-safety is my favorite part about the [T3 Stack](https://create.t3.gg/). The difference in JStack is that its client is not coupled to React Query hooks. In JStack you get a simple TypeScript client that you can use with any state manager you want:
+
+```tsx app/page.tsx
+const res = await client.post.recent.$get()
+const post = await res.json()
+// ^ automatically type-safe: { post: Post }
+```
+
+Learn how to set up your lightweight, type-safe client in our [first steps](/docs/getting-started/first-steps).
+
+---
+
+## 3. Highly Cost Effective
+
+If you follow the _"intended way"_ of deploying Next.js, you'll deploy your app to Vercel, Netlify, or similar and call it a day. With JStack, you can deploy your backend to Cloudflare Workers (or any other platform) with a single click, completely separate from your frontend.
+
+Cloudflare Workers are also one of the **cheapest** (100K requests per day for free, no credit card required) and **fastest** ways to run your serverless code.
+
+```bash Terminal
+npx wrangler deploy server/index.ts
+```
+
+I have run entire software projects on Cloudflare's free plan, such as [profanity.dev](https://profanity.dev). I think Cloudflare Workers is the most underrated computing platform in 2025 (this is not sponsored in _any_ way).
+

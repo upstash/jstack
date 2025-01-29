@@ -1,0 +1,13 @@
+node_modules
+dist
+
+# MAC
+._*
+.DS_Store
+Thumbs.db
+
+# env
+.env
+
+# Testing
+demo_projects

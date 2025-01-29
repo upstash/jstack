@@ -1,0 +1,72 @@
+---
+title: API Client
+summary: The API Client in JStack
+---
+
+# Type-Safe API Client
+
+One of the best features of JStack is its **end-to-end type safety** 😎. Let's see how to make type-safe API calls - so TypeScript knows exactly what data to expect from our server.
+
+---
+
+## 1. Client Setup
+
+Create a type-safe client that knows about all your API routes by passing it the `AppRouter` type - the type of your entire backend:
+
+```ts lib/client.ts /AppRouter/
+import { createClient } from "jstack"
+import type { AppRouter } from "@/server"
+
+export const client = createClient<AppRouter>({
+  baseUrl: `${getBaseUrl()}/api`,
+})
+
+function getBaseUrl() {
+  // 👇 Adjust for wherever you deploy
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return `http://localhost:3000`
+}
+```
+
+---
+
+## 2. Client Usage
+
+You can now make API calls from anywhere in your application with full type-safety 🎉.
+
+```tsx app/page.tsx {3-4}
+import { client } from "@/lib/client"
+
+const res = await client.post.recent.$get()
+const post = await res.json()
+// ^ TypeScript knows this route's return type
+```
+
+---
+
+## 3. Example with React Query
+
+JStack's client works anywhere and **with any state manager** because it's simply a type-safe `fetch` wrapper. For example, it pairs perfectly with React Query:
+
+```tsx app/page.tsx {4, 7-13}
+"use client"
+
+import { client } from "@/lib/client"
+import { useQuery } from "@tanstack/react-query"
+
+export default function Page() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["get-recent-post"],
+    queryFn: async () => {
+      const res = await client.post.recent.$get()
+      return await res.json()
+    },
+  })
+
+  if (isLoading) return <p>Loading...</p>
+
+  return <h1>{data.title}</h1> // TypeScript knows this is safe!
+}
+```
+
+You can use the client with any other state manager you prefer, such as Zustand, Jotai, or Redux. JStack does not care 🤷‍♂️.

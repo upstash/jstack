@@ -1,0 +1,75 @@
+---
+title: Environment Variables
+summary: Managing environment variables for different deployment targets
+---
+
+# Environment Variables in JStack
+
+JStack supports multiple deployment targets such as Cloudflare Workers, Vercel, Netlify, and more. This guide will help you set up environment variables correctly based on your deployment platform.
+
+JStack supports **full environment variable type-safety**:
+
+```ts server/jstack.ts {3-5,7}
+import { jstack } from "jstack"
+
+interface Env {
+  Bindings: { DATABASE_URL: string }
+}
+
+export const j = jstack.init<Env>()
+
+/**
+ * Public (unauthenticated) procedures
+ * This is the base part you use to create new procedures.
+ */
+export const publicProcedure = j.procedure
+```
+
+---
+
+## Node.js (Vercel, Netlify, etc.)
+
+If you deploy JStack in a Node.js environment (e.g., Vercel, Netlify), both the frontend and the backend will run on Node.js. You can access environment variables anywhere using `process.env`.
+
+1. **Local development**
+
+   ```plaintext .env
+   DATABASE_URL=your-database-url
+   ```
+
+2. **Accessing variables**
+   ```ts
+   // Works everywhere (frontend & backend)
+   const DATABASE_URL = process.env.DATABASE_URL
+   ```
+
+---
+
+## Cloudflare Workers
+
+When using Cloudflare Workers (either locally with `wrangler dev` or in production), you'll need to use [Cloudflare's environment variable system](https://developers.cloudflare.com/workers/configuration/environment-variables/):
+
+1. **Local development**
+
+   ```plaintext .dev.vars
+   DATABASE_URL=your-database-url
+   ```
+
+2. **Accessing variables**
+
+   ```ts
+   // Frontend (client & server components)
+   const DATABASE_URL = process.env.DATABASE_URL
+   ```
+
+   ```ts {2, 7}
+   // Backend (API)
+   import { env } from "hono/adapter"
+   import { j } from "jstack"
+
+   export const postRouter = j.router({
+     recent: j.procedure.query(({ c }) => {
+       const { DATABASE_URL } = env(c)
+     }),
+   })
+   ```

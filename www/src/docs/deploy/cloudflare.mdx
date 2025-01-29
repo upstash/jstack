@@ -1,0 +1,106 @@
+---
+title: Cloudflare Workers
+summary: Deploy JStack to Cloudflare Workers
+---
+
+# Deploy to Cloudflare Workers
+
+JStack can be deployed to Cloudflare Workers, providing a globally distributed, serverless runtime for your API. This guide will walk you through the deployment process.
+
+---
+
+## Prerequisites
+
+1. Install the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
+
+   ```bash Terminal
+   npm install wrangler@latest -g
+   ```
+
+2. Make sure you have an account at [Cloudflare](https://www.cloudflare.com/)
+
+---
+
+## Deployment Steps
+
+1. Deploy your backend to Cloudflare Workers using `wrangler deploy`. Enter the path to your `appRouter` file, by default this is:
+
+   ```bash Terminal
+   wrangler deploy src/server/index.ts
+   ```
+
+   The console output will look like this:
+
+   <Frame>
+     <Image src="/cf-deployment-url.png" />
+   </Frame>
+
+2. Add the deployment URL to the client:
+
+   ```ts lib/client.ts {5,8-16}
+   import type { AppRouter } from "@/server"
+   import { createClient } from "jstack"
+
+   export const client = createClient<AppRouter>({
+     baseUrl: `${getBaseUrl()}/api`,
+   })
+
+   function getBaseUrl() {
+     // 👇 In production, use the production worker
+     if (process.env.NODE_ENV === "production") {
+       return "https://<YOUR_DEPLOYMENT>.workers.dev/api"
+     }
+
+     // 👇 Locally, use wrangler backend
+     return `http://localhost:8080`
+   }
+   ```
+
+---
+
+## Environment Variables
+
+Make sure your Worker has the necessary environment variables configured. Either enter [one at a time](https://developers.cloudflare.com/workers/configuration/secrets/) or [update them in bulk](https://developers.cloudflare.com/workers/wrangler/commands/#secretbulk):
+
+```bash Terminal
+wrangler secret put <KEY>
+```
+
+---
+
+## Production Deployment
+
+When you deploy your front-end application:
+
+- Deploy to your preferred hosting platform (Vercel, Netlify, etc.)
+- After adding the deployment URL to your `lib/client.ts` file, your frontend will automatically connect to your Worker
+
+---
+
+## Common Problems
+
+### CORS Configuration
+
+If you are experiencing CORS problems, make sure your Worker is configured correctly:
+
+```ts server/index.ts {8}
+import { InferRouterInputs, InferRouterOutputs } from "jstack"
+import { postRouter } from "./routers/post-router"
+import { j } from "./jstack"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+const appRouter = j.mergeRouters(api, {
+  post: postRouter,
+})
+
+export type AppRouter = typeof appRouter
+
+export default appRouter
+```
+
+[&rarr; More about CORS in JStack](/docs/backend/app-router#cors)

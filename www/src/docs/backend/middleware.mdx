@@ -1,0 +1,166 @@
+---
+title: Middleware
+summary: Understanding and implementing middleware in JStack
+---
+
+# Middleware
+
+Middleware in JStack allows you to add reusable logic between your procedure requests and handlers. It's perfect for cross-cutting concerns like authentication, logging, or error handling.
+
+---
+
+## Basic Middleware Structure
+
+```ts server/jstack.ts
+const myMiddleware = j.middleware(async ({ c, next }) => {
+  // 1️⃣ Code that runs before the handler
+  // ...
+
+  // 2️⃣ Pass data to the next middleware/handler
+  return await next({ customData: "value" })
+})
+```
+
+---
+
+## Common Use Cases
+
+### Authentication Middleware
+
+The following middleware authenticates a user. When our procedure runs, we can be 100% sure that this user really exists, because otherwise the middleware will throw an error and prevent the procedure from running:
+
+```ts server/jstack.ts {10-22, 29}
+import { HTTPException } from "hono/http-exception"
+import { jstack } from "jstack"
+
+interface Env {
+  Bindings: { DATABASE_URL: string }
+}
+
+export const j = jstack.init<Env>()
+
+const authMiddleware = j.middleware(async ({ c, next }) => {
+  // Mocked user authentication check...
+  const isAuthenticated = true
+
+  if (!isAuthenticated) {
+    throw new HTTPException(401, {
+      message: "Unauthorized, sign in to continue.",
+    })
+  }
+
+  // 👇 Attach user to `ctx` object
+  await next({ user: { name: "John Doe" } })
+})
+
+/**
+ * Public (unauthenticated) procedures
+ * This is the base piece you use to build new procedures.
+ */
+export const publicProcedure = j.procedure
+export const privateProcedure = publicProcedure.use(authMiddleware)
+```
+
+On any `privateProcedure` we can now safely access the user object:
+
+```ts server/routers/post-router.ts {5-6}
+import { j, privateProcedure } from "../jstack"
+
+export const postRouter = j.router({
+  list: privateProcedure.query(({ c, ctx }) => {
+    // 👇 Access middleware data through ctx
+    const { user } = ctx
+
+    return c.json({ posts: [] })
+  }),
+})
+```
+
+---
+
+## Middleware Chaining
+
+Chain multiple middlewares using `.use()`:
+
+```ts
+const enhancedProcedure = publicProcedure
+  .use(authMiddleware)
+  .use(loggingMiddleware)
+  .use(rateLimitMiddleware)
+```
+
+If you have multiple middlewares that depend on each other, by definition JStack cannot know the order in which they were run. Therefore, use the type inference utility:
+
+```ts server/jstack.ts {14, 18}
+import { InferMiddlewareOutput, jstack } from "jstack"
+
+interface Env {
+  Bindings: { DATABASE_URL: string }
+}
+
+export const j = jstack.init<Env>()
+
+// 1️⃣ Auth middleware runs first
+const authMiddleware = j.middleware(async ({ c, next }) => {
+  return await next({ user: { name: "John Doe" } })
+})
+
+type AuthMiddlewareOutput = InferMiddlewareOutput<typeof authMiddleware>
+
+// 2️⃣ Logging middleware runs second
+const loggingMiddleware = j.middleware(async ({ c, ctx, next }) => {
+  const { user } = ctx as AuthMiddlewareOutput
+
+  const start = performance.now()
+  await next()
+  const end = performance.now()
+
+  console.log(`${user.name}'s request took ${end - start}ms`)
+})
+
+/**
+ * Public (unauthenticated) procedures
+ * This is the base piece you use to build new procedures.
+ */
+export const publicProcedure = j.procedure
+export const privateProcedure = publicProcedure
+  .use(authMiddleware)
+  .use(loggingMiddleware)
+```
+
+---
+
+## Using Hono Middleware
+
+JStack is compatible with Hono middleware via the `fromHono` adapter:
+
+```ts
+import { j } from "./jstack"
+import { cors } from "hono/cors"
+
+const corsMiddleware = j.fromHono(cors())
+const procedureWithCors = publicProcedure.use(corsMiddleware)
+```
+
+---
+
+## Best Practices
+
+- Keep middleware focused on a single responsibility
+- Handle errors via your `appRouter`'s `onError()`
+
+---
+
+## Common Middleware Examples
+
+- Authentication
+- Request logging
+- Rate limiting
+- Error handling
+- Request validation
+- Performance monitoring
+- CORS handling
+
+---
+
+&rarr; To see all built-in Hono middleware, check out the [Hono middleware documentation](https://hono.dev/docs/middleware/builtin/basic-auth).

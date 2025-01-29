@@ -1,0 +1,250 @@
+---
+title: Procedures
+summary: Procedures in JStack
+---
+
+# Procedures
+
+A procedure in JStack is an **API endpoint that handles a specific operation**. There are three kinds of procedures:
+
+- `query` procedures for GET requests
+- `mutation` procedures for POST requests
+- `ws` (WebSocket) procedures for real-time communication
+
+```plaintext JStack File Structure {3}
+app/
+  └── server/
+      ├── jstack.ts        # Initialize JStack
+      ├── index.ts         # Main appRouter
+      └── routers/         # Router directory
+          ├── user-router.ts
+          ├── post-router.ts
+          └── payment-router.ts
+```
+
+For simplicity, I recommend defining procedures and middleware in the `jstack.ts` file. You can create a separate file if necessary.
+
+---
+
+## Procedures Overview
+
+By default, JStack provides a `publicProcedure` that anyone, authenticated or not, can call. It serves as a base from which to build new procedures:
+
+```ts server/jstack.ts {9-13}
+import { jstack } from "jstack"
+
+interface Env {
+  Bindings: { DATABASE_URL: string }
+}
+
+export const j = jstack.init<Env>()
+
+/**
+ * Public (unauthenticated) procedures
+ * This is the base part you use to create new procedures.
+ */
+export const publicProcedure = j.procedure
+```
+
+---
+
+## Example Procedure
+
+Let's create a procedure that **only authenticated users** can call:
+
+```ts server/jstack.ts {10-22, 29}
+import { HTTPException } from "hono/http-exception"
+import { jstack } from "jstack"
+
+interface Env {
+  Bindings: { DATABASE_URL: string }
+}
+
+export const j = jstack.init<Env>()
+
+const authMiddleware = j.middleware(async ({ c, next }) => {
+  // Mocked user authentication check...
+  const isAuthenticated = true
+
+  if (!isAuthenticated) {
+    throw new HTTPException(401, {
+      message: "Unauthorized, sign in to continue.",
+    })
+  }
+
+  // 👇 Attach user to `ctx` object
+  await next({ user: { id: "123", name: "John Doe" } })
+})
+
+/**
+ * Public (unauthenticated) procedures
+ * This is the base part you use to create new procedures.
+ */
+export const publicProcedure = j.procedure
+export const privateProcedure = publicProcedure.use(authMiddleware)
+```
+
+### Example Procedure Usage
+
+```ts server/routers/post-router.ts /privateProcedure/
+import { j, privateProcedure } from "../jstack"
+
+export const postRouter = j.router({
+  list: privateProcedure.query(({ c }) => {
+    return c.json({ posts: [] })
+  }),
+})
+```
+
+**Tada!** 🎉 Now only authenticated users can call our `/api/post/list` endpoint. Unauthenticated users will be rejected with a 401 response.
+
+---
+
+## Query Procedures
+
+Query procedures are used to read data from your API. They accept input via URL query parameters and use HTTP GET requests. Query procedures are defined using the `query()` method.
+
+The handler receives the following objects:
+
+- `c`: [Hono context](https://hono.dev/docs/api/context), e.g. headers, request info, env variables
+- `ctx`: Your context, e.g. database instance, authenticated user
+- `input`: Validated input (optional)
+
+```ts server/routers/post-router.ts {4}
+import { j, publicProcedure } from "../jstack"
+
+export const postRouter = j.router({
+  getRecent: publicProcedure.query(({ c, ctx, input }) => {
+    const post = {
+      id: 1,
+      title: "My first post",
+    }
+
+    return c.json({ post })
+  }),
+})
+```
+
+To call a query procedure in your application, use your client's `$get` method:
+
+```ts page.tsx
+import { client } from "@/lib/client"
+
+const res = await client.post.getRecent.$get()
+```
+
+---
+
+## Mutation Procedures
+
+Mutation procedures are used to modify, create or delete data. They accept input via the request body and use HTTP POST requests. Mutation procedures are defined using the `mutation()` method.
+
+Like queries, the handler receives the following objects:
+
+- `c`: [Hono Context](https://hono.dev/docs/api/context), e.g. headers, request info, env variables
+- `ctx`: Your context, e.g. database instance, authenticated user
+- `input`: Validated input (optional)
+
+```ts server/routers/post-router.ts {4}
+import { j, publicProcedure } from "../jstack"
+
+export const postRouter = j.router({
+  create: publicProcedure.mutation(({ c, ctx, input }) => {
+    return c.json({ message: "Post created successfully!" })
+  }),
+})
+```
+
+To call a mutation procedure in your application, use your client's `$post` method:
+
+```ts page.tsx
+import { client } from "@/lib/client"
+
+const res = await client.post.create.$post()
+```
+
+---
+
+## Input Validation
+
+JStack has built-in runtime validation for user input using [Zod](https://zod.dev/?id=basic-usage). To set up an input validator, use the `procedure.input()` method:
+
+```ts server/routers/post-router.ts /input/
+import { z } from "zod"
+import { j, publicProcedure } from "../jstack"
+
+export const postRouter = j.router({
+  create: publicProcedure
+    .input(z.object({ title: z.string() }))
+    .mutation(({ c, ctx, input }) => {
+      // 👇 Guaranteed to exist & automatically typed
+      const { title } = input
+
+      return c.json({ message: `Created post: "${title}"` })
+    }),
+})
+```
+
+If an API request does not contain the expected input (either as a URL parameter for `query()` or as a request body for `mutation()`), your global `onError` will automatically catch this error for easy frontend handling.
+
+Also, if you call this procedure from the client, you'll get immediate feedback about the expected input:
+
+```ts page.tsx /{ title: "My new post" }/
+import { client } from "@/lib/client"
+
+// ✅ Client knows that `title` is expected input
+await client.post.create.$post({ title: "My new post" })
+```
+
+---
+
+## WebSocket Procedures
+
+WebSocket procedures provide real-time bi-directional communication between the client and server. They are created using the `ws()` method and can specify schemas for incoming and outgoing messages.
+
+The handler receives the following objects:
+
+- `c`: [Hono context](https://hono.dev/docs/api/context), e.g. headers, request info, env variables
+- `ctx`: Your context, e.g. database instance, authenticated user
+- `io`: Connection manager for sending messages to clients
+
+```ts server/routers/post-router.ts
+import { j, publicProcedure } from "../jstack"
+import { z } from "zod"
+
+const incomingEvents = z.object({
+  like: z.object({ username: z.string(), postId: z.string() }),
+})
+
+const outgoingEvents = z.object({
+  like: z.object({ username: z.string() }),
+})
+
+export const postRouter = j.router({
+  likes: publicProcedure
+    .incoming(incomingEvents)
+    .outgoing(outgoingEvents)
+    .ws(({ c, ctx, io }) => {
+      return {
+        onConnect({ socket }) {
+          socket.on("like", ({ username, postId }) => {
+            console.log(`User "${username}" liked post with id "${postId}"`)
+
+            // 👇 Send event to all connected clients
+            io.to(postId).emit("like", { username })
+          })
+        },
+        onDisconnect({ socket }) {
+          console.log("User disconnected")
+        },
+        onError({ socket, error }) {
+          console.log("Socket error:", error)
+        },
+      }
+    }),
+})
+```
+
+WebSocket procedures are serverless, with no additional infrastructure management. To make this possible, JStack uses Upstash Redis as its real-time engine and expects WebSocket procedures to be deployed to Cloudflare Workers.
+
+[&rarr; JStack WebSocket Docs](/docs/backend/websockets)

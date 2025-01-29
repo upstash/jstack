@@ -1,0 +1,86 @@
+---
+title: Routers
+summary: Routers in JStack
+---
+
+# About Routers
+
+A router in JStack is a **collection of procedures** (API endpoints) related to a specific feature or resource. For example:
+
+- `userRouter` for user management operations
+- `postRouter` for blog post operations
+- `paymentRouter` for payment related endpoints
+
+```plaintext {5-8}
+app/
+  └── server/
+      ├── jstack.ts        # Initializing JStack
+      ├── index.ts         # Main appRouter
+      └── routers/         # Router directory
+          ├── user-router.ts
+          ├── post-router.ts
+          └── payment-router.ts
+```
+
+---
+
+## Creating a Router
+
+1. Create a new file in `server/routers`:
+
+   ```ts server/routers/post-router.ts
+   import { j } from "../jstack"
+
+   export const postRouter = j.router({
+     // Procedures go here...
+   })
+   ```
+
+2. Add procedures to your router:
+
+   ```ts {4-10} server/routers/post-router.ts
+   import { j, publicProcedure } from "../jstack"
+
+   export const postRouter = j.router({
+     list: publicProcedure.query(({ c }) => {
+       return c.json({ posts: [] })
+     }),
+
+     create: publicProcedure.mutation(({ c }) => {
+       return c.json({ success: true })
+     }),
+   })
+   ```
+
+3. Register your router with the main `appRouter`:
+
+   ```ts server/index.ts {2, 11}
+   import { j } from "./jstack"
+   import { postRouter } from "./routers/post-router" 
+
+   const api = j 
+     .router() 
+     .basePath("/api") 
+     .use(j.defaults.cors) 
+     .onError(j.defaults.errorHandler) 
+
+   const appRouter = j.mergeRouters(api, {
+     post: postRouter, 
+   })
+
+   export type AppType = typeof appRouter
+
+   export default appRouter
+   ```
+
+Under the hood, each procedure is a separate HTTP endpoint. The URL structure is as follows:
+
+- The base path of your API (`/api`)
+- The router name (`post`)
+- The procedure name (`list`)
+
+For example, the `list` procedure is now available at
+
+```plaintext
+http://localhost:3000/api/post/list
+```

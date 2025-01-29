@@ -1,0 +1,1 @@
+This CLI is built by looking at how the [T3 Stack](https://create.t3.gg/) built their CLI. The credit for this CLI and how it's structured goes to them.

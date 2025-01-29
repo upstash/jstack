@@ -1,4 +1,0 @@
-name = "<YOUR_PROJECT_NAME>"
-main = "src/server/index.ts"
-compatibility_date = "2024-03-29"
-compatibility_flags = ["nodejs_compat"]

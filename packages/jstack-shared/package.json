@@ -1,0 +1,55 @@
+{
+  "name": "jstack-shared",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "keywords": [],
+  "author": "Josh tried coding",
+  "license": "ISC",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "@types/node": "^22.10.2",
+    "@upstash/redis": "^1.34.3",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.0",
+    "dotenv": "^16.4.7",
+    "hono": "^4.6.17",
+    "ora": "^8.1.1",
+    "superjson": "^2.2.2",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "zod": "^3.24.1"
+  },
+  "peerDependencies": {
+    "zod": ">=3.24.1",
+    "hono": ">=4.6.17",
+    "react": ">=16.8.0"
+  }
+}

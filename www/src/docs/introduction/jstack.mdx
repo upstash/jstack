@@ -1,0 +1,73 @@
+---
+title: Why JStack
+summary: This is my first post
+---
+
+# About JStack
+
+**JStack is a TypeScript + Next.js stack built for maximum developer experience and application performance.** It builds on some of the most modern, high-quality pieces of software in 2025:
+
+- [**Hono 🔥**](https://hono.dev/) as a portable, lightweight Next.js backend
+- [**Zod 💎**](https://github.com/colinhacks/zod) for runtime validation
+- [**Drizzle ORM 💩**](https://orm.drizzle.team/) to interact with our database
+
+In the following section, I'll explain why these tools provide an incredible foundation for building fast, reliable, and production-ready Next.js applications.
+
+---
+
+## Why I created JStack
+
+Since I first tried the [T3 Stack](https://create.t3.gg/) a few years ago, I've loved the concept of type safety between client and server.
+
+Using TypeScript across the front- and backend gives you crazy confidence when writing code and prevents bugs before they happen. 
+
+Combine that with the runtime safety provided by [Zod](https://github.com/colinhacks/zod), and you've got a safe and TypeScript-friendly way to build full-stack Next.js projects.
+
+However, over a few years of using the T3 stack for YouTube projects (both privately and for my production Next.js projects), **I wish the stack did a few things differently**.
+
+---
+
+### 1. Independent State Management
+
+tRPC is a _fantastic_ tool for providing type-safety between your frontend and backend. However, it has the trade-off of coupling itself to React Query hooks. This coupling is convenient but also limiting. As you get into more advanced use cases and eventually run into problems, I find myself having to find the "tRPC-specific" solution to the problem.
+
+Almost every question about React Query, every pattern you might want to know about, has already been answered. Often even by the (very active) maintainer [TKDodo himself](https://x.com/TkDodo):
+
+<Frame>
+  <Image alt="TKDodo, the maintainer of React Query aka TanStack Query" src="/tk_dodo.png" />
+</Frame>
+
+The user base is so large that there are almost no unanswered questions. Best practices have been established over the years, and the tRPC implementation sometimes interferes with them.
+
+I also find myself unable to use React Query as an **incredible** standalone state manager because tRPC associates a frontend declaration with a backend procedure.
+
+JStack does not couple its type-safe client to any state manager. It works perfectly with React Query and any other state manager you might want to use (like Zustand, Jotai, and even Redux 🤮). Calling your client directly from a Zustand store outside of React scope? No problem, because your client is just a type-safe fetch wrapper.
+
+You can use all the standard React Query best practices and patterns and don't need to find tRPC-specific solutions to your problems. I like this no abstraction approach a lot more.
+
+---
+
+### 2. Not Just JSON Responses
+
+Because I built JStack on top of [Hono](https://hono.dev), which uses web standard responses under the hood, your API is not limited to JSON responses. JStack natively supports:
+
+- JSON
+- SuperJSON
+- Plain text
+- HTML
+- Web Standard Response
+
+I've never felt comfortable building anything other than app-internal APIs in tRPC. JStack routers follow an intuitive naming convention to serve both internal APIs and anything public-facing, all right from a single Next.js backend.
+
+---
+
+### 3. Platform Agnostic Deployment
+
+I recommend deploying to [Cloudflare Workers](https://workers.cloudflare.com/) because they are incredibly cheap, fast, and natively support long-lived WebSocket connections. However, JStack is built on top of [Hono](https://hono.dev), so you can deploy anywhere with minimal to no code changes:
+
+- Cloudflare
+- Vercel
+- Netlify
+- Railway
+- AWS
+- ...

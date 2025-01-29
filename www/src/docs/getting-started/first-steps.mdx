@@ -1,0 +1,179 @@
+---
+title: First Steps
+summary: This is my first post
+---
+
+# First Steps
+
+JStack makes it easy to build **performant, reliable Next.js applications**. You can start a new project in one of two ways:
+
+- Using the CLI (recommended)
+- Manual Setup
+
+Especially if you use the CLI (which does all the setup automatically), this guide will help you understand key components of your new (and hopefully favorite 🤞) Next.js & TypeScript tech stack.
+
+---
+
+## Quickstart
+
+The quickest way to get started is with the CLI:
+
+```bash Terminal
+npx create-jstack-app@latest
+```
+
+**That's it!** 🎉 The CLI creates a brand new project following best practices and modern Next.js patterns. I recommend reading on to understand each part of JStack.
+
+---
+
+## 1. File Structure
+
+Let's explore the main building blocks of JStack. I recommend the following file structure for your Next.js application:
+
+```plaintext JStack File Structure
+app/
+  └── server/
+      ├── jstack.ts        # Initialize JStack
+      ├── index.ts         # Main appRouter
+      └── routers/         # Router directory
+          ├── user-router.ts
+          ├── post-router.ts
+          └── ...
+```
+
+---
+
+## 2. Initialize JStack
+
+This file is the point where we initialize JStack. Optionally, you can specify your environment variable type here, which makes it **type-safe across your application**.
+
+```ts server/jstack.ts {1,7}
+import { jstack } from "jstack"
+
+interface Env {
+  Bindings: { DATABASE_URL: string }
+}
+
+export const j = jstack.init<Env>()
+
+/**
+ * Public (unauthenticated) procedures
+ * This is the base part you use to create new procedures.
+ */
+export const publicProcedure = j.procedure
+```
+
+This file is where we create [Procedures](/docs/backend/procedures) and [Middleware](/docs/backend/middleware).
+
+---
+
+## 3. The App Router 🧠
+
+The core of JStack is the `appRouter` - it's the entry point to your Next.js backend and manages all your API routes:
+
+```ts app\server\index.ts
+import { j } from "./jstack"
+
+/**
+ * This is your base API.
+ * Here, you can handle errors, not-found responses, cors and more.
+ */
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+/**
+ * This is the main router for your server.
+ * All routers in /server/routers should be added here manually.
+ */
+const appRouter = j.mergeRouters(api, {
+  // ...
+})
+
+export type AppRouter = typeof appRouter
+
+export default appRouter
+```
+
+When a new HTTP request comes in to your server, the `appRouter` knows where to route the request.
+
+[&rarr; Read more about the appRouter](/docs/backend/app-router)
+
+---
+
+## 4. Routers
+
+Routers help you group related features. For example, you might have:
+
+- `userRouter` for user related operations
+- `paymentRouter` for all payment related operations
+- `postRouter` for blog post operations
+
+This is what a basic router looks like:
+
+```ts server/routers/post-router.ts
+import { j, publicProcedure } from "../jstack"
+
+export const postRouter = j.router({
+  recent: publicProcedure.query(({ c }) => {
+    return c.json({ title: "first post" })
+  }),
+})
+```
+
+In this example:
+
+- `postRouter` is the name of your [router](/docs/backend/routers)
+- `recent` is the name of your [procedure](/docs/backend/procedures)
+- The function gets a context object (`c`) with helpful utilities
+- We return a mocked post using `c.json()`
+
+---
+
+## 5. Connecting a Router
+
+Let's connect our new router to make it available for API requests:
+
+```ts server/index.ts {2, 11}
+import { j } from "./jstack"
+import { postRouter } from "./routers/post-router"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+const appRouter = j.mergeRouters(api, {
+  post: postRouter,
+})
+
+export type AppRouter = typeof appRouter
+export default appRouter
+```
+
+---
+
+## 6. API Setup
+
+To handle all incoming requests with our `appRouter`, create a [catch-all API route](https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes#catch-all-segments):
+
+```ts app/api/[[...route]]/route.ts
+import appRouter from "@/server"
+import { handle } from "hono/vercel"
+
+export const GET = handle(appRouter.handler)
+export const POST = handle(appRouter.handler)
+```
+
+**That's it!** 🎉
+
+You can now send API requests to `http://localhost:3000/api/post/recent`. This path is made up of three different parts:
+
+- base path (`/api`)
+- Router name (`post`)
+- Procedure name (`recent`)
+
+[&rarr; Next: Make type-safe API requests in your Next.js app](/docs/backend/api-client)

@@ -1,0 +1,11 @@
+on:
+  watch:
+    types: [started]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Send notification
+      run: |
+        curl -X POST -H "Authorization: ${{ secrets.AUTH_TOKEN }}" https://stargazers.joshtriedcoding.workers.dev/api/stargazers/refresh

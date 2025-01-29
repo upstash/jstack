@@ -1,0 +1,51 @@
+---
+title: Local Development
+summary: Local development with JStack
+---
+
+# Quickstart
+
+Start the JStack dev environment by running:
+
+```bash Terminal
+npm run dev
+```
+
+This command will start your Next.js application at `http://localhost:3000`. This is all you need to do if you plan to deploy to Vercel, Netlify, or similar.
+
+---
+
+## Cloudflare Worker Setup
+
+If you are using JStack to develop for Cloudflare Workers, launch two terminal windows to run the frontend and backend separately:
+
+```bash Terminal
+# Terminal 1: Frontend
+npm run dev     # Available on http://localhost:3000
+
+# Terminal 2: Backend
+wrangler dev    # Available on http://localhost:8080
+```
+
+These commands will start your:
+
+- Frontend on `http://localhost:3000`
+- Backend on `http://localhost:8080`
+
+To let your frontend know about your backend on a separate port, adjust your client:
+
+```ts lib/client.ts {5-6}
+import type { AppRouter } from "@/server"
+import { createClient } from "jstack"
+
+export const client = createClient<AppRouter>({
+  // 👇 Add our port 8080 cloudflare URL
+  baseUrl: "http://localhost:8080/api",
+})
+```
+
+**How it works**
+
+- Your frontend runs as a standard Next.js application
+- Your backend runs in Wrangler, Cloudflare's development environment
+- API requests from your frontend are automatically routed to the correct backend URL

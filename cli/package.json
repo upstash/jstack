@@ -1,0 +1,46 @@
+{
+  "name": "create-jstack-app",
+  "version": "0.1.9",
+  "description": "CLI tool to create a new jStack application",
+  "main": "dist/index.js",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "files": [
+    "dist",
+    "template",
+    "package.json"
+  ],
+  "bin": {
+    "create-jstack-app": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "copy-base-template": "tsx scripts/copy-base-template.ts"
+  },
+  "keywords": [],
+  "author": "Josh tried coding",
+  "license": "ISC",
+  "dependencies": {
+    "@clack/prompts": "^0.8.1",
+    "chalk": "^5.3.0",
+    "execa": "^9.5.2",
+    "fs-extra": "^11.2.0",
+    "hono": "^4.6.19",
+    "jstack": "^1.0.0",
+    "ora": "^8.1.1",
+    "sort-package-json": "^2.11.0",
+    "tsup": "^8.3.5"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.9.1",
+    "boxen": "^8.0.1",
+    "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.30.1",
+    "postgres": "^3.4.5",
+    "type-fest": "^4.27.0",
+    "typescript": "^5.6.3"
+  }
+}
