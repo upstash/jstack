@@ -124,13 +124,13 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
 1. After [logging into Upstash](https://upstash.com/), create a Redis database by clicking the _Create Database_ button
 
    <Frame>
-     <Image src="/create-redis-db.png" />
+     <Image src="/create-redis-db.png" alt="Create an Upstash Redis database" />
    </Frame>
 
 2. Copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env variables into a `.dev.vars` file in the root of your app
 
    <Frame>
-     <Image src="/copy-redis-env-variables.png" />
+     <Image src="/copy-redis-env-variables.png" alt="Copy Upstash Redis environment variables" />
    </Frame>
 
    ```plaintext .dev.vars
@@ -173,7 +173,7 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    The console output looks like this:
 
    <Frame>
-     <Image src="/cf-deployment-url.png" />
+     <Image src="/cf-deployment-url.png" alt="Deploy JStack WebSockets to Cloudflare" />
    </Frame>
 
 2. Add the deployment URL to the client:
@@ -208,7 +208,7 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    ```
 
    <Frame>
-     <Image src="/wrangler-secret-put.png" />
+     <Image src="/wrangler-secret-put.png" alt="Use Wrangler to upload environment variables" />
    </Frame>
 
    **That's it! 🎉** If you now deploy your app to Vercel, Netlify, etc., the client will automatically connect to your production Cloudflare Worker.
@@ -220,5 +220,5 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    ```
 
    <Frame>
-     <Image src="/verify-ws-connection.png" />
+     <Image src="/verify-ws-connection.png" alt="Verify your JStack WebSocket connection" />
    </Frame>
