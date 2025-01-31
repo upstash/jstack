@@ -39,6 +39,9 @@ const main = async () => {
     await installDependencies({ projectDir })
   }
 
+  // Run git init in the projectDir
+  execSync("git init", { cwd: projectDir })
+
   process.exit(0)
 }
 
