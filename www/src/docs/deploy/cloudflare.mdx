@@ -48,7 +48,7 @@ JStack can be deployed to Cloudflare Workers, providing a globally distributed, 
    function getBaseUrl() {
      // 👇 In production, use the production worker
      if (process.env.NODE_ENV === "production") {
-       return "https://<YOUR_DEPLOYMENT>.workers.dev/api"
+       return "https://<YOUR_DEPLOYMENT>.workers.dev"
      }
 
      // 👇 Locally, use wrangler backend
