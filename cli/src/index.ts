@@ -2,7 +2,7 @@
 
 import fs from "fs-extra"
 import path from "path"
-
+import { execSync } from "child_process"
 import { runCli } from "./cli/index.js"
 import { scaffoldProject } from "./helpers/scaffold-project.js"
 import { buildInstallerMap } from "./installers/index.js"
