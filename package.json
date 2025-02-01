@@ -1,0 +1,19 @@
+{
+  "name": "jstack",
+  "version": "0.0.0",
+  "description": "The stack for building seriously fast, lightweight and end-to-end typesafe Next.js apps.",
+  "author": "Josh tried coding",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/upstash/jstack.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["jstack", "next.js", "typescript", "hono"],
+  "dependencies": {
+    "prettier": "^3.4.2"
+  }
+}
