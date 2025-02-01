@@ -21,13 +21,13 @@ const posts: Post[] = [
  * @see https://jstack.app/docs/backend/routers
  */
 export const postRouter = j.router({
-  recent: j.procedure.query(({ c }) => {
-    return c.superjson(posts.at(-1) ?? null)
+  recent: j.procedure.query(() => {
+    return posts.at(-1) ?? null
   }),
 
   create: j.procedure
     .input(z.object({ name: z.string().min(1) }))
-    .mutation(({ c, input }) => {
+    .mutation(({ input }) => {
       const post: Post = {
         id: posts.length + 1,
         name: input.name,
@@ -35,6 +35,6 @@ export const postRouter = j.router({
 
       posts.push(post)
 
-      return c.superjson(post)
+      return post
     }),
 })

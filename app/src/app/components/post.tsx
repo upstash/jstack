@@ -11,15 +11,15 @@ export const RecentPost = () => {
   const { data: recentPost, isPending: isLoadingPosts } = useQuery({
     queryKey: ["get-recent-post"],
     queryFn: async () => {
-      const res = await client.post.recent.$get()
-      return await res.json()
+      const res = await client.post.recent.query()
+      return res
     },
   })
 
   const { mutate: createPost, isPending } = useMutation({
     mutationFn: async ({ name }: { name: string }) => {
-      const res = await client.post.create.$post({ name })
-      return await res.json()
+      const res = await client.post.create.mutate({ name })
+      return res
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["get-recent-post"] })
@@ -35,7 +35,7 @@ export const RecentPost = () => {
         </p>
       ) : recentPost ? (
         <p className="text-[#ececf399] text-base/6">
-          Your recent post: "{recentPost.name}"
+          Your recent post: &quot;{recentPost.name}&quot;
         </p>
       ) : (
         <p className="text-[#ececf399] text-base/6">

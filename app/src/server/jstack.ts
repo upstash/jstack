@@ -1,13 +1,17 @@
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
+import { initTRPC } from "@trpc/server"
+import superjson from "superjson"
 import { env } from "hono/adapter"
-import { jstack } from "jstack"
+import { Context } from "hono"
 
-interface Env {
-  Bindings: { DATABASE_URL: string }
+export type HonoContext = {
+  env: Context["env"]
 }
 
-export const j = jstack.init<Env>()
+export const j = initTRPC.context<HonoContext>().create({
+  transformer: superjson,
+})
 
 /**
  * Injects database instance into all procedures
@@ -20,13 +24,13 @@ export const j = jstack.init<Env>()
  * })
  * ```
  */
-export const databaseMiddleware = j.middleware(async ({ c, next }) => {
-  const { DATABASE_URL } = env(c)
+export const databaseMiddleware = j.middleware(async ({ next, ctx }) => {
+  const { DATABASE_URL } = env(ctx.env)
 
   const sql = neon(DATABASE_URL)
   const db = drizzle(sql)
 
-  return await next({ db })
+  return await next({ ctx: { db } })
 })
 
 /**
