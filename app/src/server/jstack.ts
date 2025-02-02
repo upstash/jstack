@@ -1,15 +1,16 @@
 import { neon } from "@neondatabase/serverless"
-import { drizzle } from "drizzle-orm/neon-http"
 import { initTRPC } from "@trpc/server"
+import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch"
+import { drizzle } from "drizzle-orm/neon-http"
 import superjson from "superjson"
-import { env } from "hono/adapter"
-import { Context } from "hono"
 
-export type HonoContext = {
-  env: Context["env"]
+export const createContext = async (opts: FetchCreateContextFnOptions) => {
+  return {}
 }
 
-export const j = initTRPC.context<HonoContext>().create({
+export type Context = Awaited<ReturnType<typeof createContext>>
+
+export const j = initTRPC.context<Context>().create({
   transformer: superjson,
 })
 
@@ -25,9 +26,7 @@ export const j = initTRPC.context<HonoContext>().create({
  * ```
  */
 export const databaseMiddleware = j.middleware(async ({ next, ctx }) => {
-  const { DATABASE_URL } = env(ctx.env)
-
-  const sql = neon(DATABASE_URL)
+  const sql = neon(process.env.DATABASE_URL!)
   const db = drizzle(sql)
 
   return await next({ ctx: { db } })

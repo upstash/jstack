@@ -1,28 +1,22 @@
 import appRouter from "@/server"
-import { trpcServer } from "@hono/trpc-server"
-import { Hono } from "hono"
-import { cors } from "hono/cors"
-import { handle } from "hono/vercel"
+import { createContext } from "@/server/jstack"
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 
-const app = new Hono()
+const handler = (req: Request) =>
+  fetchRequestHandler({
+    router: appRouter,
+    req,
+    endpoint: "/api/trpc",
+    createContext,
+    onError(opts) {
+      const { error } = opts
 
-app.use(
-  cors({
-    origin: (origin) => origin,
-    credentials: true,
+      if (error.code === "INTERNAL_SERVER_ERROR") {
+        // send to bug reporting
+        console.error("Something went wrong", error)
+      }
+    },
   })
-)
 
-const server = trpcServer({
-  endpoint: "/api/trpc",
-  router: appRouter,
-  onError(opts) {
-    console.error(opts.error)
-  },
-})
-
-app.use("*", server)
-
-// This route catches all incoming API requests and lets your appRouter handle them.
-export const GET = handle(app)
-export const POST = handle(app)
+export const GET = handler
+export const POST = handler

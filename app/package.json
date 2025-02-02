@@ -9,8 +9,6 @@
     "lint": "next linta"
   },
   "dependencies": {
-    "@hono/trpc-server": "^0.3.4",
-    "@hono/zod-validator": "^0.4.1",
     "@neondatabase/serverless": "^0.10.3",
     "@tailwindcss/postcss": "^4.0.0",
     "@tanstack/react-query": "^5.51.23",
@@ -20,7 +18,6 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.39.0",
-    "hono": "^4.6.19",
     "next": "^15.1.6",
     "nuqs": "^2.2.3",
     "postgres": "^3.4.5",
