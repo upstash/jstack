@@ -1,6 +1,6 @@
 {
   "name": "jstack",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Josh tried coding",
   "main": "dist/server/index.js",
   "module": "dist/server/index.mjs",
@@ -65,5 +65,8 @@
     "build": "tsup"
   },
   "type": "module",
-  "types": "dist/server/index.d.ts"
+  "types": "dist/server/index.d.ts",
+  "dependencies": {
+    "jstack-shared": "0.0.2"
+  }
 }
