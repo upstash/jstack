@@ -32,7 +32,6 @@ const Layout = async ({ children }: PropsWithChildren) => {
 
   const docsByCategory = Object.entries(DOCS_CONFIG.categories).reduce(
     (acc, [category, config]) => {
-      // Get docs for this category and sort them according to items array
       const categoryDocs = allDocs.filter((doc) => doc._meta.path.split("/")[0] === category)
       const sortedDocs = categoryDocs.sort((a, b) => {
         const aIndex = config.items.indexOf(a._meta.path.split("/")[1] as string)
@@ -62,7 +61,7 @@ const Layout = async ({ children }: PropsWithChildren) => {
                 <div className="flex gap-2 items-center justify-center">
                   <Icons.logo className="size-5 sm:size-6" />
                   <div className="flex items-center gap-1.5">
-                    <p className="text-muted-light font-semibold">JStack</p>
+                    <p className="text-muted-light font-semibold tracking-tight">JStack</p>
                     <p className="text-muted-dark">docs</p>
                   </div>
                 </div>

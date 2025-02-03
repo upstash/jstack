@@ -27,7 +27,6 @@ export function MobileNavigation() {
 
   const docsByCategory = Object.entries(DOCS_CONFIG.categories).reduce(
     (acc, [category, config]) => {
-      // Get docs for this category and sort them according to items array
       const categoryDocs = allDocs.filter((doc) => doc._meta.path.split("/")[0] === category)
       const sortedDocs = categoryDocs.sort((a, b) => {
         const aIndex = config.items.indexOf(a._meta.path.split("/")[1] as string)
@@ -64,7 +63,7 @@ export function MobileNavigation() {
             <div className="flex gap-2 items-center justify-center">
               <Icons.logo className="size-7" />
               <div className="flex flex-col justify-center">
-                <p className="text-sm text-muted-light font-semibold">JStack</p>
+                <p className="text-sm text-muted-light font-semibold tracking-tight">JStack</p>
                 <p className="text-sm text-muted-dark">Documentation</p>
               </div>
             </div>
