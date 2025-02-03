@@ -1,14 +1,13 @@
 import { ShinyButton } from "@/components/shiny-button"
-import { allDocs } from "content-collections"
-import { ChevronDown, Search, Star } from "lucide-react"
+import { constructMetadata } from "@/lib/utils"
+import { AlignLeft, ChevronDown, Search, Star, TableOfContentsIcon } from "lucide-react"
 import Link from "next/link"
 import { PropsWithChildren } from "react"
 import { Icons } from "../../components/icons"
 import SearchBar from "../../components/search-bar"
 import { TableOfContents } from "../../components/table-of-contents"
 import { MobileNavigation } from "./mobile-nav"
-import { DOCS_CONFIG } from "@/config"
-import { constructMetadata } from "@/lib/utils"
+import { DocNavigation } from "./doc-navigation"
 
 export const revalidate = 3600
 
@@ -30,33 +29,13 @@ async function getGitHubStars() {
 const Layout = async ({ children }: PropsWithChildren) => {
   const stars = await getGitHubStars()
 
-  const docsByCategory = Object.entries(DOCS_CONFIG.categories).reduce(
-    (acc, [category, config]) => {
-      const categoryDocs = allDocs.filter((doc) => doc._meta.path.split("/")[0] === category)
-      const sortedDocs = categoryDocs.sort((a, b) => {
-        const aIndex = config.items.indexOf(a._meta.path.split("/")[1] as string)
-        const bIndex = config.items.indexOf(b._meta.path.split("/")[1] as string)
-        return aIndex - bIndex
-      })
-      acc[category] = sortedDocs
-      return acc
-    },
-    {} as Record<string, typeof allDocs>
-  )
-
-  const sortedCategories = Object.entries(docsByCategory).sort(([a], [b]) => {
-    const aOrder = DOCS_CONFIG.categories[a as keyof typeof DOCS_CONFIG.categories]?.order ?? Infinity
-    const bOrder = DOCS_CONFIG.categories[b as keyof typeof DOCS_CONFIG.categories]?.order ?? Infinity
-    return aOrder - bOrder
-  })
-
   return (
     <div className="relative min-h-screen h-screen w-full max-w-8xl mx-auto antialiased">
       <div className="relative h-full grid divide-y divide-dark-gray grid-cols-1 lg:grid-cols-[256px_1fr] xl:grid-cols-[256px_1fr_256px]">
         {/* Header row */}
         <div className="fixed bg-zinc-900 z-50 border-b border-dark-gray max-w-8xl w-full col-span-full grid grid-cols-1 lg:grid-cols-[256px_1fr] xl:grid-cols-[256px_1fr_256px]">
           <div className="bg-dark-gray/10 h-16">
-            <div className="flex items-center justify-between gap-4 h-full px-6 sm:px-8">
+            <div className="flex items-center justify-between gap-4 h-full px-6 lg:px-4">
               <Link href="/" aria-label="Home" className="flex h-full">
                 <div className="flex gap-2 items-center justify-center">
                   <Icons.logo className="size-5 sm:size-6" />
@@ -93,6 +72,7 @@ const Layout = async ({ children }: PropsWithChildren) => {
               <MobileNavigation />
 
               <button className="flex text-muted-dark items-center gap-1.5">
+                <AlignLeft className="size-4 text-muted-dark" />
                 <p>On this page</p>
                 <ChevronDown className="size-4" />
               </button>
@@ -103,34 +83,10 @@ const Layout = async ({ children }: PropsWithChildren) => {
         </div>
 
         {/* Content row */}
-        <nav className="relative hidden lg:block px-4 pt-16 antialiased">
+        <nav className="relative hidden lg:block pt-16 antialiased">
           <div className="fixed top-16 max-h-[calc(100vh-8rem)] overflow-y-auto w-60 pr-4 
             scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600">
-            <ul className="py-8 [&>*+*]:border-t [&>*+*]:border-dark-gray [&>*]:py-8 first:[&>*]:pt-0 last:[&>*]:pb-0">
-              {sortedCategories.map(([category, docs]) => (
-                <li key={category}>
-                  <p className="text-sm tracking-tight font-semibold text-muted-light uppercase mb-2">
-                    <span className="inline-block mr-2">
-                      {DOCS_CONFIG.categories[category as keyof typeof DOCS_CONFIG.categories]?.emoji}
-                    </span>
-                    {DOCS_CONFIG.categories[category as keyof typeof DOCS_CONFIG.categories]?.title ||
-                      category.replace("-", " ")}
-                  </p>
-                  <ul className="space-y-2">
-                    {docs.map((doc) => (
-                      <li key={doc._meta.path}>
-                        <Link
-                          href={`/docs/${doc._meta.path}`}
-                          className="text-sm text-muted-dark hover:text-muted-light transition"
-                        >
-                          {doc.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ul>
+            <DocNavigation className="py-8" />
           </div>
         </nav>
 

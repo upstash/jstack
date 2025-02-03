@@ -2,15 +2,21 @@
 
 import { useTableOfContents } from "@/ctx/use-table-of-contents"
 import { cn, slugify } from "@/lib/utils"
+import { AlignLeft } from "lucide-react"
 import Link from "next/link"
 import { HTMLAttributes, useCallback, useEffect } from "react"
 
 interface TableOfContentsProps extends HTMLAttributes<HTMLDivElement> {}
 
-export const TableOfContents = ({ className, ...props }: TableOfContentsProps) => {
+export const TableOfContents = ({
+  className,
+  ...props
+}: TableOfContentsProps) => {
   const visibleSections = useTableOfContents((state) => state.visibleSections)
   const allHeadings = useTableOfContents((state) => state.allHeadings)
-  const setVisibleSections = useTableOfContents((state) => state.setVisibleSections)
+  const setVisibleSections = useTableOfContents(
+    (state) => state.setVisibleSections,
+  )
 
   useEffect(() => {
     if (!allHeadings[0]) return
@@ -26,16 +32,20 @@ export const TableOfContents = ({ className, ...props }: TableOfContentsProps) =
       const slug = slugify(headingText)
       setVisibleSections([slug])
     },
-    [setVisibleSections]
+    [setVisibleSections],
   )
 
   return (
     <div className="antialiased">
       <div className={cn("text-sm/7 relative", className)} {...props}>
-        <p className="text-sm/7 font-semibold text-muted-light pl-4 ">On this page</p>
+        <p className="text-sm/7 font-semibold text-muted-light pl-4 ">
+          On this page
+        </p>
         <ul>
           {allHeadings.map((heading, i) => {
-            const isVisible = visibleSections.some((section) => section === slugify(heading.text))
+            const isVisible = visibleSections.some(
+              (section) => section === slugify(heading.text),
+            )
 
             return (
               <li key={i} className="leading-relaxed py-1">
@@ -47,13 +57,16 @@ export const TableOfContents = ({ className, ...props }: TableOfContentsProps) =
                   <div
                     className={cn(
                       "absolute left-4 w-0.5 top-0 h-full -translate-x-4 transition-colors",
-                      isVisible ? "bg-brand-300" : "bg-transparent"
+                      isVisible ? "bg-brand-300" : "bg-transparent",
                     )}
                   />
                   <p
-                    className={cn("text-muted-dark hover:text-muted-light transition pl-4 py-1", {
-                      "text-muted-light": isVisible,
-                    })}
+                    className={cn(
+                      "text-muted-dark hover:text-muted-light transition pl-4 py-1",
+                      {
+                        "text-muted-light": isVisible,
+                      },
+                    )}
                     key={heading.text}
                   >
                     {heading.text}
