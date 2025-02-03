@@ -9,7 +9,7 @@ const nextConfig = {
     return [
       {
         source: "/docs",
-        destination: "/docs/introduction/jstack",
+        destination: "/docs/getting-started/first-steps",
         permanent: true,
       },
     ]
