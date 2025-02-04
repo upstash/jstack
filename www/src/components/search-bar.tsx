@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/ctx/use-debounce"
 import { client } from "@/lib/client"
-import { cn } from "@/lib/utils"
+import { cn, levenshtein } from "@/lib/utils"
 import type { InferOutput } from "@/server"
 import { SearchMetadata } from "@/types"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
@@ -110,33 +110,12 @@ const SearchBar = () => {
   const highlightMatches = (text: string, query: string) => {
     if (!query.trim()) return text
 
-    const searchWords = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    const searchWords = query
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length >= 3)
     if (searchWords.length === 0) return text
-
-    const levenshtein = (a: string, b: string): number => {
-      if (a.length === 0) return b.length
-      if (b.length === 0) return a.length
-
-      const matrix: number[][] = Array(b.length + 1)
-        .fill(null)
-        .map(() => Array(a.length + 1).fill(null))
-
-      for (let i = 0; i <= a.length; i++) matrix[0]![i] = i
-      for (let j = 0; j <= b.length; j++) matrix[j]![0] = j
-
-      for (let j = 1; j <= b.length; j++) {
-        for (let i = 1; i <= a.length; i++) {
-          const cost = a[i - 1] === b[j - 1] ? 0 : 1
-          matrix[j]![i] = Math.min(
-            matrix[j]![i - 1]! + 1,
-            matrix[j - 1]![i]! + 1,
-            matrix[j - 1]![i - 1]! + cost,
-          )
-        }
-      }
-
-      return matrix[b.length]![a.length]!
-    }
 
     const tokens = text.split(/(\s+|[.,!?;])/g)
 
@@ -144,28 +123,65 @@ const SearchBar = () => {
       const tokenLower = token.trim().toLowerCase()
       if (!tokenLower) return token
 
-      const isMatch = searchWords.some((searchWord) => {
-        if (tokenLower === searchWord) return true
+      let highlightedToken: JSX.Element | string = token
+      let shouldHighlight = false
 
-        if (searchWord.length > 3 && tokenLower.includes(searchWord))
-          return true
-
-        if (
-          Math.abs(tokenLower.length - searchWord.length) <= 2 &&
-          tokenLower.length >= 4 &&
-          searchWord.length >= 4 &&
-          levenshtein(tokenLower, searchWord) <= 1
-        ) {
-          return true
+      searchWords.forEach((searchWord) => {
+        const exactIndex = tokenLower.indexOf(searchWord)
+        if (exactIndex !== -1) {
+          shouldHighlight = true
+          if (token.length > searchWord.length) {
+            const prefix = token.slice(0, exactIndex)
+            const match = token.slice(
+              exactIndex,
+              exactIndex + searchWord.length,
+            )
+            const suffix = token.slice(exactIndex + searchWord.length)
+            highlightedToken = (
+              <>
+                {prefix}
+                <mark className="bg-brand-400/20 text-brand-400 px-0.5 rounded">
+                  {match}
+                </mark>
+                {suffix}
+              </>
+            )
+          }
+          return
         }
 
-        return false
+        for (let i = 0; i <= tokenLower.length - searchWord.length; i++) {
+          const substring = tokenLower.slice(i, i + searchWord.length)
+          if (levenshtein(substring, searchWord) <= 1) {
+            shouldHighlight = true
+            const prefix = token.slice(0, i)
+            const match = token.slice(i, i + searchWord.length)
+            const suffix = token.slice(i + searchWord.length)
+            highlightedToken = (
+              <>
+                {prefix}
+                <mark className="bg-brand-400/20 text-brand-400 px-0.5 rounded">
+                  {match}
+                </mark>
+                {suffix}
+              </>
+            )
+            return
+          }
+        }
       })
 
-      return isMatch ? (
-        <mark key={i} className="bg-brand-400/20 text-brand-400 px-0.5 rounded">
-          {token}
-        </mark>
+      return shouldHighlight ? (
+        typeof highlightedToken === "string" ? (
+          <mark
+            key={i}
+            className="bg-brand-400/20 text-brand-400 px-0.5 rounded"
+          >
+            {token}
+          </mark>
+        ) : (
+          <span key={i}>{highlightedToken}</span>
+        )
       ) : (
         token
       )
@@ -345,7 +361,7 @@ const SearchBar = () => {
             <>
               <button
                 onClick={() => setSearchTerm("")}
-                className="absolute sm:hidden right-4 top-1/2 -translate-y-1/2 p-2 text-zinc-500 hover:text-zinc-300"
+                className="absolute sm:hidden right-4 top-1/2 -translate-y-1/2 font-mono tracking-tight px-2 py-1 bg-black/15 border border-dark-gray rounded-md text-sm text-zinc-500"
                 aria-label="Clear search"
               >
                 <X className="h-4 w-4" />
@@ -359,12 +375,12 @@ const SearchBar = () => {
         </div>
 
         {displayedResults?.length > 0 && (
-          <div className="relative">
+          <div className="relative flex-1 min-h-0 sm:min-h-fit">
             <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-zinc-900/95 to-transparent pointer-events-none" />
             <ul
               id="search-results"
               ref={resultsRef}
-              className="overflow-y-auto overflow-x-hidden pr-2 sm:max-h-[32rem] scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600"
+              className="h-full sm:h-auto overflow-y-auto overflow-x-hidden pr-2 sm:max-h-[32rem] scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600"
               role="listbox"
             >
               {displayedResults.map((result, index) => (
@@ -398,25 +414,22 @@ const SearchBar = () => {
                   >
                     {highlightMatches(
                       result.metadata?.documentTitle || "",
-                      debouncedSearchTerm,
+                      searchTerm,
                     )}
                   </h3>
                   <p className="text-sm text-zinc-400 mt-1">
-                    {highlightMatches(
-                      result.metadata?.title || "",
-                      debouncedSearchTerm,
-                    )}
+                    {highlightMatches(result.metadata?.title || "", searchTerm)}
                   </p>
                   <p className="text-sm text-zinc-300 mt-2 leading-relaxed">
                     {result.metadata?.content &&
                       renderMarkdownContent(
                         getContextAroundMatch(
                           result.metadata.content,
-                          debouncedSearchTerm,
+                          searchTerm,
                         ),
                       ).map((element, index) =>
                         typeof element === "string" ? (
-                          highlightMatches(element, debouncedSearchTerm)
+                          highlightMatches(element, searchTerm)
                         ) : (
                           <span key={index}>{element}</span>
                         ),
