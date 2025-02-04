@@ -141,7 +141,7 @@ const Page = async ({ params }: PageProps) => {
               return (
                 <h1
                   id={slug}
-                  className="relative scroll-mt-24  text-muted-light text-4xl tracking-tight font-medium"
+                  className="relative scroll-mt-44 lg:scroll-mt-32 text-muted-light text-4xl tracking-tight font-medium"
                 >
                   {children}
                 </h1>
@@ -161,7 +161,7 @@ const Page = async ({ params }: PageProps) => {
               return (
                 <h2
                   id={slug}
-                  className="relative scroll-mt-24 text-muted-light text-3xl tracking-tight font-medium"
+                  className="relative scroll-mt-44 lg:scroll-mt-32 text-muted-light text-3xl tracking-tight font-medium"
                 >
                   {children}
                 </h2>
@@ -181,7 +181,7 @@ const Page = async ({ params }: PageProps) => {
               return (
                 <h3
                   id={slug}
-                  className="relative scroll-mt-24 text-muted-light text-xl tracking-tight font-medium"
+                  className="relative scroll-mt-44 lg:scroll-mt-32 text-muted-light text-xl tracking-tight font-medium"
                 >
                   {children}
                 </h3>
