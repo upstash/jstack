@@ -235,7 +235,7 @@ const SearchBar = () => {
         ),
       },
       {
-        regex: /_([^_]+)_/g,
+        regex: /(?<=\s)_([^_]+)_(?=\s)/g,
         render: (_: string, text: string) => (
           <i className="text-muted-light italic">{text}</i>
         ),
