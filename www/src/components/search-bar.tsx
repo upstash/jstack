@@ -11,7 +11,11 @@ import { useDebounce } from "@/ctx/use-debounce"
 import { client } from "@/lib/client"
 import { cn } from "@/lib/utils"
 import { SearchMetadata } from "@/types"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query"
 import { Search, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type KeyboardEvent } from "react"
@@ -37,6 +41,7 @@ const SearchBar = () => {
       return await res.json()
     },
     enabled: debouncedSearchTerm.length > 0,
+    placeholderData: keepPreviousData,
   })
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
