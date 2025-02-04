@@ -1,4 +1,4 @@
-# JStack - The stack for building seriously fast, lightweight and end-to-end typesafe Next.js apps.
+# JStack - Build fast, lightweight and end-to-end typesafe Next.js apps
 
 Built on Next.js 15, Hono, Tailwind and Drizzle ORM.
 
