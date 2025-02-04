@@ -10,15 +10,14 @@ import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/ctx/use-debounce"
 import { client } from "@/lib/client"
 import { cn } from "@/lib/utils"
+import type { InferOutput } from "@/server"
 import { SearchMetadata } from "@/types"
-import {
-  useQuery,
-  useQueryClient,
-  keepPreviousData,
-} from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Search, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type KeyboardEvent } from "react"
+
+type SearchOutput = InferOutput["search"]["byQuery"]
 
 const SearchBar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -31,25 +30,34 @@ const SearchBar = () => {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 150)
 
-  const { data: results = [] } = useQuery({
+  const prevResultsRef = useRef<SearchOutput>([])
+
+  const { data: results, isRefetching } = useQuery({
     queryKey: ["search", debouncedSearchTerm],
     queryFn: async () => {
       if (!debouncedSearchTerm) return []
+
       const res = await client.search.byQuery.$get({
         query: debouncedSearchTerm,
       })
-      return await res.json()
+
+      const newResults = await res.json()
+      prevResultsRef.current = newResults
+      return newResults
     },
+    initialData: [],
     enabled: debouncedSearchTerm.length > 0,
-    placeholderData: keepPreviousData,
+    placeholderData: () => prevResultsRef.current,
   })
+
+  const displayedResults = isRefetching ? prevResultsRef.current : results
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault()
         setSelectedIndex((prevIndex) =>
-          prevIndex < results.length - 1 ? prevIndex + 1 : prevIndex,
+          prevIndex < (results?.length ?? 0) - 1 ? prevIndex + 1 : prevIndex,
         )
         break
       case "ArrowUp":
@@ -58,7 +66,7 @@ const SearchBar = () => {
         break
       case "Enter":
         e.preventDefault()
-        if (selectedIndex >= 0 && results[selectedIndex]?.metadata) {
+        if (selectedIndex >= 0 && results?.[selectedIndex]?.metadata) {
           handleResultClick({
             id: results[selectedIndex].id.toString(),
             title: results[selectedIndex].metadata.title,
@@ -350,7 +358,7 @@ const SearchBar = () => {
           )}
         </div>
 
-        {results.length > 0 && (
+        {displayedResults?.length > 0 && (
           <div className="relative">
             <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-zinc-900/95 to-transparent pointer-events-none" />
             <ul
@@ -359,7 +367,7 @@ const SearchBar = () => {
               className="overflow-y-auto overflow-x-hidden pr-2 sm:max-h-[32rem] scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600"
               role="listbox"
             >
-              {results.map((result, index) => (
+              {displayedResults.map((result, index) => (
                 <li
                   key={index}
                   id={`result-${index}`}
@@ -390,22 +398,25 @@ const SearchBar = () => {
                   >
                     {highlightMatches(
                       result.metadata?.documentTitle || "",
-                      searchTerm,
+                      debouncedSearchTerm,
                     )}
                   </h3>
                   <p className="text-sm text-zinc-400 mt-1">
-                    {highlightMatches(result.metadata?.title || "", searchTerm)}
+                    {highlightMatches(
+                      result.metadata?.title || "",
+                      debouncedSearchTerm,
+                    )}
                   </p>
                   <p className="text-sm text-zinc-300 mt-2 leading-relaxed">
                     {result.metadata?.content &&
                       renderMarkdownContent(
                         getContextAroundMatch(
                           result.metadata.content,
-                          searchTerm,
+                          debouncedSearchTerm,
                         ),
                       ).map((element, index) =>
                         typeof element === "string" ? (
-                          highlightMatches(element, searchTerm)
+                          highlightMatches(element, debouncedSearchTerm)
                         ) : (
                           <span key={index}>{element}</span>
                         ),

@@ -1,3 +1,4 @@
+import type { InferRouterOutputs } from "jstack"
 import { j } from "./jstack"
 import { searchRouter } from "./routers/search-router"
 import { stargazersRouter } from "./routers/stargazers-router"
@@ -15,3 +16,5 @@ const appRouter = j.mergeRouters(api, {
 
 export type AppRouter = typeof appRouter
 export default appRouter
+
+export type InferOutput = InferRouterOutputs<AppRouter>
