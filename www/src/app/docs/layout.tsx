@@ -14,8 +14,7 @@ import SearchBar from "../../components/search-bar"
 import { TableOfContents } from "../../components/table-of-contents"
 import { MobileNavigation } from "./mobile-nav"
 import { DocNavigation } from "./doc-navigation"
-import { unstable_cache } from 'next/cache'
-
+import { unstable_cache } from "next/cache"
 
 export const revalidate = 3600
 
@@ -30,20 +29,23 @@ export const metadata = constructMetadata({
 const getGitHubStars = unstable_cache(
   async () => {
     if (process.env.NODE_ENV === "development") return "500"
-    const response = await fetch("https://api.github.com/repos/upstash/jstack", {
-      next: {
-        tags: ["github-stars"],
-        revalidate: 60,
+    const response = await fetch(
+      "https://api.github.com/repos/upstash/jstack",
+      {
+        next: {
+          tags: ["github-stars"],
+          revalidate: 60,
+        },
       },
-    })
+    )
     const data = (await response.json()) as GitHubResponse
     return data.stargazers_count
   },
   ["github-stars"],
   {
     revalidate: 60,
-    tags: ["github-stars"]
-  }
+    tags: ["github-stars"],
+  },
 )
 
 const Layout = async ({ children }: PropsWithChildren) => {
