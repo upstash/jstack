@@ -1,13 +1,12 @@
 "use client"
 
 import { client } from "@/lib/client"
+import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
+import { Star } from "lucide-react"
+import { Icons } from "./icons"
 import { Stargazer, StargazerLoading, StargazerMore } from "./landing/stargazer"
 import { ShinyButton } from "./shiny-button"
-import { Icons } from "./icons"
-import { Star } from "lucide-react"
-import { CopyButton } from "./copy-button"
-import { cn } from "@/lib/utils"
 
 export const StarsSection = () => {
   const { data: stargazerInfo, isPending } = useQuery({
@@ -20,21 +19,12 @@ export const StarsSection = () => {
 
   return (
     <section className="relative w-full mt-12">
-      {/* <div className="absolute inset-x-0 -translate-y-1/2 flex justify-center">
-        <div className="max-w-sm mx-4 sm:mx-0 shadow bg-zinc-800 font-mono rounded-md flex items-center justify-between w-full px-6 py-5">
-          <p className="text-sm/6 font-medium text-brand-200">
-            <span className="text-[#F97583]">npx</span> create-jstack-app
-          </p>
-
-          <CopyButton code="npx create-jstack-app@latest" />
-        </div>
-      </div> */}
       <div className="w-full px-4 sm:px-0 flex gap-8 flex-col items-center py-28 border-y-2 border-dashed bg-black/20 border-dark-gray/50">
         <h1
           className={cn(
             "relative text-pretty z-10 tracking-tight gap-1 transition text-center",
             "font-display text-4xl sm:text-5xl font-semibold",
-            "text-zinc-50"
+            "text-zinc-50",
           )}
         >
           <span className="relative text-white">
