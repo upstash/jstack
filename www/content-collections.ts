@@ -2,6 +2,7 @@ import { defineCollection, defineConfig } from "@content-collections/core"
 import { compileMDX } from "@content-collections/mdx"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import { rehypeParseCodeBlocks } from "./shiki-rehype.mjs"
+import { slugify } from "@/lib/utils"
 
 const docs = defineCollection({
   name: "docs",
@@ -34,6 +35,7 @@ const docs = defineCollection({
         return {
           level: flag?.length,
           text: content,
+          slug: slugify(content ?? "#")
         }
       }
     )

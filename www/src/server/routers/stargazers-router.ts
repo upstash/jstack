@@ -1,5 +1,5 @@
 import { fetchStargazers } from "@/actions/stargazers"
-import { j, publicProcedure } from "@/server/procedures"
+import { j, publicProcedure } from "@/server/jstack"
 import { Receiver } from "@upstash/qstash"
 import { env } from "hono/adapter"
 

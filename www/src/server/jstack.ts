@@ -2,6 +2,7 @@ import { env } from "hono/adapter"
 import { jstack } from "jstack"
 import { Redis } from "@upstash/redis"
 import { Client } from "@upstash/qstash"
+import { Index } from "@upstash/vector"
 
 interface Env {
   Bindings: {
@@ -12,6 +13,8 @@ interface Env {
     QSTASH_CURRENT_SIGNING_KEY: string
     UPSTASH_REDIS_REST_URL: string
     UPSTASH_REDIS_REST_TOKEN: string
+    UPSTASH_VECTOR_REST_URL: string
+    UPSTASH_VECTOR_REST_TOKEN: string
   }
 }
 
@@ -29,6 +32,17 @@ const redisMiddleware = j.middleware(async ({ c, next }) => {
   const qstash = new Client({ token: QSTASH_TOKEN })
 
   return await next({ redis, qstash })
+})
+
+export const vectorMiddleware = j.middleware(async ({ c, next }) => {
+  const { UPSTASH_VECTOR_REST_URL, UPSTASH_VECTOR_REST_TOKEN } = env(c)
+
+  const index = new Index({
+    url: UPSTASH_VECTOR_REST_URL,
+    token: UPSTASH_VECTOR_REST_TOKEN,
+  })
+
+  return await next({ index })
 })
 
 /**
