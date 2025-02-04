@@ -141,7 +141,7 @@ const Page = async ({ params }: PageProps) => {
               return (
                 <h1
                   id={slug}
-                  className="relative text-muted-light text-4xl tracking-tight font-medium"
+                  className="relative scroll-mt-24  text-muted-light text-4xl tracking-tight font-medium"
                 >
                   {children}
                 </h1>

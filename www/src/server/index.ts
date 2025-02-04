@@ -1,4 +1,5 @@
-import { j } from "./procedures"
+import { j } from "./jstack"
+import { searchRouter } from "./routers/search-router"
 import { stargazersRouter } from "./routers/stargazers-router"
 
 export const api = j
@@ -8,6 +9,7 @@ export const api = j
   .onError(j.defaults.errorHandler)
 
 const appRouter = j.mergeRouters(api, {
+  search: searchRouter,
   stargazers: stargazersRouter,
 })
 

@@ -1,6 +1,12 @@
 import { ShinyButton } from "@/components/shiny-button"
 import { constructMetadata } from "@/lib/utils"
-import { AlignLeft, ChevronDown, Search, Star, TableOfContentsIcon } from "lucide-react"
+import {
+  AlignLeft,
+  ChevronDown,
+  Search,
+  Star,
+  TableOfContentsIcon,
+} from "lucide-react"
 import Link from "next/link"
 import { PropsWithChildren } from "react"
 import { Icons } from "../../components/icons"
@@ -15,7 +21,9 @@ export interface GitHubResponse {
   stargazers_count: number
 }
 
-export const metadata = constructMetadata({ title: "JStack Docs - Full-Stack Next.js & TypeScript Toolkit" })
+export const metadata = constructMetadata({
+  title: "JStack Docs - Full-Stack Next.js & TypeScript Toolkit",
+})
 
 async function getGitHubStars() {
   if (process.env.NODE_ENV === "development") return "500"
@@ -40,18 +48,17 @@ const Layout = async ({ children }: PropsWithChildren) => {
                 <div className="flex gap-2 items-center justify-center">
                   <Icons.logo className="size-5 sm:size-6" />
                   <div className="flex items-center gap-1.5">
-                    <p className="text-muted-light font-semibold tracking-tight">JStack</p>
+                    <p className="text-muted-light font-semibold tracking-tight">
+                      JStack
+                    </p>
                     <p className="text-muted-dark">docs</p>
                   </div>
                 </div>
               </Link>
 
-              <div className="hidden top-0 inset-x-0 h-16 sm:block lg:hidden">
+              <div className="lg:hidden">
                 <SearchBar />
               </div>
-              <button className="sm:hidden group p-4 hover:bg-dark-gray transition-colors rounded-full">
-                <Search className="size-4 shrink-0 text-muted-dark group-hover:text-muted-light" />
-              </button>
             </div>
           </div>
 
@@ -59,7 +66,10 @@ const Layout = async ({ children }: PropsWithChildren) => {
             {/* desktop */}
             <div className="hidden lg:flex h-full w-full items-center justify-between">
               <SearchBar />
-              <ShinyButton className="group text-sm text-muted-light" href="https://github.com/upstash/jstack">
+              <ShinyButton
+                className="group text-sm text-muted-light"
+                href="https://github.com/upstash/jstack"
+              >
                 <Icons.github className="size-4 shrink-0" />
                 Star on GitHub
                 <Star className="size-4 shrink-0 fill-gray-500 group-hover:fill-brand-500 transition-colors stroke-transparent" />
@@ -84,14 +94,18 @@ const Layout = async ({ children }: PropsWithChildren) => {
 
         {/* Content row */}
         <nav className="relative hidden lg:block pt-16 antialiased">
-          <div className="fixed top-16 max-h-[calc(100vh-8rem)] overflow-y-auto w-60 pr-4 
-            scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600">
+          <div
+            className="fixed top-16 max-h-[calc(100vh-8rem)] overflow-y-auto w-60 pr-4 
+            scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600"
+          >
             <DocNavigation className="py-8" />
           </div>
         </nav>
 
         <main className="w-full h-full bg-dark-gray/10 border-x border-dark-gray">
-          <div className="max-w-2xl h-full w-full mx-auto pt-44 lg:pt-32 px-6 sm:px-8">{children}</div>
+          <div className="max-w-2xl h-full w-full mx-auto pt-44 lg:pt-32 px-6 sm:px-8">
+            {children}
+          </div>
         </main>
 
         <nav className="relative px-4 pt-10 hidden xl:block">
