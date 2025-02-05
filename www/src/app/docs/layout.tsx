@@ -109,7 +109,7 @@ const Layout = async ({ children }: PropsWithChildren) => {
         {/* Content row */}
         <nav className="relative hidden lg:block pt-16 antialiased">
           <div
-            className="fixed top-16 max-h-[calc(100vh-8rem)] overflow-y-auto w-60 pr-4 
+            className="fixed top-16 max-h-[calc(100vh-8rem)] overflow-y-auto w-[calc(16rem+1px)] pr-4 
             scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600"
           >
             <DocNavigation className="py-8" />
