@@ -8,7 +8,7 @@ export const posts = pgTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
-  (table) => ({
-    nameIdx: index("Post_name_idx").on(table.name),
-  })
+  (table) => [
+    index("Post_name_idx").on(table.name)
+  ]
 )
