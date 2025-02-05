@@ -37,7 +37,7 @@ class JStack {
       /**
        * Type-safe router factory function that creates a new router instance.
        * 
-       * @template T - Record of operation types (queries/mutations/websockets)
+       * @template T - Record of operation types (get/post/websockets)
        * @template E - Environment type for the router
        * @returns {Router<T, E>} A new router instance with type-safe procedure definitions
        * 
@@ -45,13 +45,13 @@ class JStack {
        * const userRouter = router({
        *   getUser: publicProcedure
        *     .input(z.object({ id: z.string() }))
-       *     .query(async ({ input }) => {
+       *     .get(async ({ input }) => {
        *       return { id: input.id, name: "John Doe" }
        *     }),
        *   
        *   createUser: publicProcedure
        *     .input(z.object({ name: z.string() }))
-       *     .mutation(async ({ input }) => {
+       *     .post(async ({ input }) => {
        *       return { id: "123", name: input.name }
        *     })
        * })

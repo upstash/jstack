@@ -166,7 +166,7 @@ export default ${routerPath}Router`
         } else {
           Object.entries(procedures).forEach(([procedureName, { type }]) => {
             // @ts-ignore
-            const method = type === "query" ? "GET" : type === "mutation" ? "POST" : "WS"
+            const method = type === "get" ? "GET" : type === "post" ? "POST" : "WS"
             console.log(chalk.dim("    •"), chalk.yellow(`[${method}]`.padEnd(6)), `api/${routerName}/${procedureName}`)
           })
         }

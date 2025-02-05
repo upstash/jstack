@@ -1,6 +1,6 @@
+import { SearchMetadata } from "@/types"
 import { z } from "zod"
 import { j, publicProcedure, vectorMiddleware } from "../jstack"
-import { SearchMetadata } from "@/types"
 
 export const searchRouter = j.router({
   byQuery: publicProcedure

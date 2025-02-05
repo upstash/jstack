@@ -103,12 +103,12 @@ type UnwrapResponse<T> =
           ? void
           : T
 
-export type QueryOperation<
+export type GetOperation<
   Schema extends Record<string, any> | void,
   Return = OptionalPromise<ResponseType<any>>,
   E extends Env = any,
 > = {
-  type: "query"
+  type: "get"
   schema?: z.ZodType<Schema> | void
   handler: <Input>({
     c,
@@ -124,12 +124,12 @@ export type QueryOperation<
 
 type OptionalPromise<T> = T | Promise<T>
 
-export type MutationOperation<
+export type PostOperation<
   Schema extends Record<string, any> | void,
   Return = OptionalPromise<ResponseType<any>>,
   E extends Env = any,
 > = {
-  type: "mutation"
+  type: "post"
   schema?: z.ZodType<Schema> | void
   handler: <Input, Output>({
     ctx,
@@ -147,8 +147,8 @@ export type OperationType<
   O extends Record<string, unknown>,
   E extends Env = any,
 > =
-  | QueryOperation<I, O, E>
-  | MutationOperation<I, O, E>
+  | GetOperation<I, O, E>
+  | PostOperation<I, O, E>
   | WebSocketOperation<I, O, E>
 
 export type InferInput<T> =

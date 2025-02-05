@@ -1,4 +1,3 @@
-import { getCookie } from "hono/cookie"
 
 import { Context, Hono, Next } from "hono"
 import { env } from "hono/adapter"
@@ -11,14 +10,13 @@ import { IO } from "./io"
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware"
 import {
   ContextWithSuperJSON,
+  GetOperation,
   InferInput,
-  MutationOperation,
   OperationType,
-  QueryOperation,
+  PostOperation,
   RouterConfig,
   WebSocketOperation,
 } from "./types"
-import { cors } from "hono/cors"
 
 export type RouterSchema<T extends Record<string, any>> = {
   [K in keyof T]: T[K] extends WebSocketOperation<any, any>
@@ -32,7 +30,7 @@ export type RouterSchema<T extends Record<string, any>> = {
           status: StatusCode
         }
       }
-    : T[K] extends QueryOperation<any, any>
+    : T[K] extends GetOperation<any, any>
       ? {
           $get: {
             input: InferInput<T[K]>
@@ -41,7 +39,7 @@ export type RouterSchema<T extends Record<string, any>> = {
             status: StatusCode
           }
         }
-      : T[K] extends MutationOperation<any, any>
+      : T[K] extends PostOperation<any, any>
         ? {
             $post: {
               input: InferInput<T[K]>
@@ -68,7 +66,7 @@ export class Router<
     config: RouterConfig | Record<string, RouterConfig>
     procedures: Record<
       string,
-      Record<string, { type: "query" | "mutation" | "ws" }>
+      Record<string, { type: "get" | "post" | "ws" }>
     >
     registeredPaths: string[]
   }
@@ -147,7 +145,7 @@ export class Router<
           return middlewareHandler
         })
 
-      if (operation.type === "query") {
+      if (operation.type === "get") {
         if (operation.schema) {
           this.get(
             path,
@@ -181,7 +179,7 @@ export class Router<
             return result === undefined ? c.json(undefined) : result
           })
         }
-      } else if (operation.type === "mutation") {
+      } else if (operation.type === "post") {
         if (operation.schema) {
           this.post(
             path,

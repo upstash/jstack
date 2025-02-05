@@ -6,8 +6,8 @@ import { IO } from "./io"
 import {
   ContextWithSuperJSON,
   MiddlewareFunction,
-  MutationOperation,
-  QueryOperation,
+  PostOperation,
+  GetOperation,
   ResponseType,
   WebSocketHandler,
   WebSocketOperation,
@@ -17,7 +17,6 @@ type OptionalPromise<T> = T | Promise<T>
 type InferIncomingData<Events> = Events extends ZodTypeAny
   ? z.infer<Events>
   : void
-
 
 export class Procedure<
   E extends Env = any,
@@ -51,7 +50,7 @@ export class Procedure<
     middlewares: MiddlewareFunction<Ctx, void, E>[] = [],
     inputSchema?: InputSchema,
     incomingSchema?: Incoming,
-    outgoingSchema?: Outgoing
+    outgoingSchema?: Outgoing,
   ) {
     this.middlewares = middlewares
     this.inputSchema = inputSchema
@@ -63,42 +62,160 @@ export class Procedure<
     }
   }
 
+  /**
+   * Validates incoming WebSocket messages using a Zod schema.
+   *
+   * @see https://jstack.app/docs/backend/websockets
+   * @param schema - A Zod schema to validate incoming WebSocket messages
+   *
+   * @example
+   * ```ts
+   * const chatValidator = z.object({
+   *   message: z.object({
+   *     roomId: z.string(),
+   *     message: z.string(),
+   *     author: z.string()
+   *   })
+   * })
+   *
+   * const chatRouter = router({
+   *   chat: procedure
+   *     .incoming(chatValidator)
+   *     .ws(({ io }) => ({
+   *       onConnect({ socket }) {
+   *         socket.on("message", ({ roomId, message, author }) => {
+   *           // ...
+   *         })
+   *       }
+   *     }))
+   * })
+   * ```
+   */
   incoming<Schema extends z.ZodTypeAny>(schema: Schema) {
     return new Procedure<E, Ctx, InputSchema, Schema, Outgoing>(
       this.middlewares,
       this.inputSchema,
       schema,
-      this.outgoingSchema
+      this.outgoingSchema,
     )
   }
 
+  /**
+   * Validates outgoing WebSocket messages using a Zod schema.
+   *
+   * @see https://jstack.app/docs/backend/websockets
+   * @param schema - A Zod schema to validate outgoing WebSocket messages
+   *
+   * @example
+   * ```ts
+   * const chatValidator = z.object({
+   *   message: z.object({
+   *     roomId: z.string(),
+   *     message: z.string(),
+   *     author: z.string()
+   *   })
+   * })
+   *
+   * const chatRouter = router({
+   *   chat: procedure
+   *     .incoming(chatValidator)
+   *     .outgoing(chatValidator)
+   *     .ws(({ io }) => ({
+   *       onConnect({ socket }) {
+   *         socket.on("message", async (message) => {
+   *           await io.to(message.roomId).emit("message", message)
+   *         })
+   *       }
+   *     }))
+   * })
+   * ```
+   */
   outgoing<Schema extends z.ZodTypeAny>(schema: Schema) {
     return new Procedure<E, Ctx, InputSchema, Incoming, Schema>(
       this.middlewares,
       this.inputSchema,
       this.incomingSchema,
-      schema
+      schema,
     )
   }
 
+  /**
+   * Validates input parameters using a Zod schema.
+   * 
+   * @see https://jstack.app/docs/backend/procedures#input-validation
+   * @param schema - A Zod schema to validate input parameters
+   * 
+   * @example
+   * ```ts
+   * const router = j.router({
+   *   hello: publicProcedure
+   *     .input(z.object({ name: z.string() }))
+   *     .get(({ c, input }) => {
+   *       return c.text(`Hello ${input.name}!`) // input is typed as { name: string }
+   *     })
+   * })
+   * ```
+   */
   input<Schema extends z.ZodTypeAny>(schema: Schema) {
     return new Procedure<E, Ctx, Schema, Incoming, Outgoing>(
       this.middlewares,
       schema,
       this.incomingSchema,
-      this.outgoingSchema
+      this.outgoingSchema,
     )
   }
 
+  /**
+   * Adds a middleware function to the procedure chain.
+   * 
+   * @see https://jstack.app/docs/backend/middleware
+   * @param handler - A middleware function that can modify the context
+   * 
+   * @example
+   * ```ts
+   * // Create a middleware that adds user data to context
+   * const withUser = j.middleware(async ({ ctx, next }) => {
+   *   const user = await getUser()
+   *   return await next({ user }) // Adds user to ctx
+   * })
+   * 
+   * const router = j.router({
+   *   profile: publicProcedure
+   *     .use(withUser) // Apply middleware
+   *     .get(({ c, ctx }) => {
+   *       return c.json(ctx.user) // ctx.user is now typed
+   *     })
+   * })
+   * ```
+   */
   use<T, Return = void>(
-    handler: MiddlewareFunction<Ctx, Return, E>
+    handler: MiddlewareFunction<Ctx, Return, E>,
   ): Procedure<E, Ctx & T & Return, InputSchema, Incoming, Outgoing> {
     return new Procedure<E, Ctx & T & Return, InputSchema, Incoming, Outgoing>(
       [...this.middlewares, handler as any],
       this.inputSchema,
       this.incomingSchema,
-      this.outgoingSchema
+      this.outgoingSchema,
     )
+  }
+
+  get<Return extends OptionalPromise<ResponseType<any>>>(
+    handler: ({
+      ctx,
+      c,
+      input,
+    }: {
+      ctx: Ctx
+      c: ContextWithSuperJSON<E>
+      input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
+    }) => Return,
+  ): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
+    return {
+      type: "get",
+      schema: this.inputSchema,
+      handler: handler as any,
+      middlewares: this.middlewares,
+    }
   }
 
   query<Return extends OptionalPromise<ResponseType<any>>>(
@@ -110,10 +227,24 @@ export class Procedure<
       ctx: Ctx
       c: ContextWithSuperJSON<E>
       input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
-    }) => Return
-  ): QueryOperation<InputSchema, ReturnType<typeof handler>, E> {
+    }) => Return,
+  ): GetOperation<InputSchema, Return, E> {
+    return this.get(handler)
+  }
+
+  post<Return extends OptionalPromise<ResponseType<any>>>(
+    handler: ({
+      ctx,
+      c,
+      input,
+    }: {
+      ctx: Ctx
+      c: ContextWithSuperJSON<E>
+      input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
+    }) => Return,
+  ): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
     return {
-      type: "query",
+      type: "post",
       schema: this.inputSchema,
       handler: handler as any,
       middlewares: this.middlewares,
@@ -129,14 +260,9 @@ export class Procedure<
       ctx: Ctx
       c: ContextWithSuperJSON<E>
       input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
-    }) => Return
-  ): MutationOperation<InputSchema, ReturnType<typeof handler>, E> {
-    return {
-      type: "mutation",
-      schema: this.inputSchema,
-      handler: handler as any,
-      middlewares: this.middlewares,
-    }
+    }) => Return,
+  ): PostOperation<InputSchema, Return, E> {
+    return this.post(handler)
   }
 
   ws(
@@ -150,7 +276,7 @@ export class Procedure<
       ctx: Ctx
     }) => OptionalPromise<
       WebSocketHandler<InferIncomingData<Incoming>, InferIncomingData<Outgoing>>
-    >
+    >,
   ): WebSocketOperation<
     InferIncomingData<Incoming>,
     InferIncomingData<Outgoing>,
