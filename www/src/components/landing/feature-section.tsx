@@ -4,12 +4,11 @@ import {
   Bot,
   CloudUpload,
   Code,
-  Coins,
-  Plug,
+  Plug
 } from "lucide-react"
-import { FeatureCard } from "./feature-card"
 import Link from "next/link"
 import { Icons } from "../icons"
+import { FeatureCard } from "./feature-card"
 
 const getTimeOfDay = () => {
   const hour = new Date().getHours()
@@ -23,9 +22,8 @@ export const FeatureSection = () => {
     <section className="mt-20 md:mt-32 relative flex items-center w-full flex-col gap-6 md:gap-8 max-w-7xl mx-auto px-4 md:px-6">
       <h2 className="text-4xl sm:text-5xl leading-none tracking-tight text-muted-light font-semibold text-center">
         Build a production-grade app{" "}
-        <span className="relative block mt-2 md:inline md:mt-0 text-brand-400">
-          {" "}
-          <span className="absolute z-0 bg-brand-200/10 -left-2 -top-1 -bottom-1 -right-2 md:-left-3 md:-top-0 md:-bottom-0 md:-right-3 -rotate-1" />
+        <span className="relative whitespace-nowrap inline-block mt-2 md:inline md:mt-0 text-brand-400">
+          <span className="absolute z-0 bg-brand-200/10 w-[110%] -left-[5%] h-full -rotate-1" />
           this {getTimeOfDay()}!
         </span>
       </h2>
@@ -94,22 +92,47 @@ export const FeatureSection = () => {
           </p>
         </div>
         <div className="w-full grid grid-cols-2 sm:flex sm:flex-wrap justify-center items-center gap-8 px-4 md:px-6">
-          <Link href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8">
+          <Link
+            href="https://nextjs.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8"
+          >
             <Icons.nextjs className="w-24 md:w-32" />
           </Link>
-          <Link href="https://hono.dev" target="_blank" rel="noopener noreferrer" className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8">
+          <Link
+            href="https://hono.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8"
+          >
             <div className="flex items-center gap-0.5">
               <Icons.hono className="size-12 md:size-16 text-orange-500 fill-orange-500" />
               <p className="font-bold text-2xl md:text-3xl/7">Hono</p>
             </div>
           </Link>
-          <Link href="https://orm.drizzle.team" target="_blank" rel="noopener noreferrer" className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8">
+          <Link
+            href="https://orm.drizzle.team"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8"
+          >
             <Icons.drizzle className="size-10 md:size-12" />
           </Link>
-          <Link href="https://www.typescriptlang.org" target="_blank" rel="noopener noreferrer" className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8">
+          <Link
+            href="https://www.typescriptlang.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity sm:border-r sm:border-dark-gray sm:pr-8"
+          >
             <Icons.typescript className="size-10 md:size-12" />
           </Link>
-          <Link href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity col-span-2 sm:col-span-1">
+          <Link
+            href="https://tailwindcss.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex justify-center items-center opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity col-span-2 sm:col-span-1"
+          >
             <Icons.tailwind className="h-6 w-auto md:h-7 my-4 sm:my-0" />
           </Link>
         </div>

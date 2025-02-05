@@ -27,8 +27,8 @@ export const StarsSection = () => {
             "text-zinc-50",
           )}
         >
-          <span className="relative text-white">
-            <span className="absolute z-0 bg-brand-200/10 -left-2 -top-1 -bottom-1 -right-2 md:-left-3 md:-top-0 md:-bottom-0 md:-right-3 -rotate-1" />
+          <span className="relative whitespace-nowrap text-white">
+            <span className="absolute z-0 bg-brand-200/10 w-[110%] h-[110%] -left-[5%] -top-[2.5%] -rotate-1" />{" "}
             <span className="relative z-10 text-brand-400">
               {stargazerInfo?.stargazerCount.toLocaleString() || "..."} devs
             </span>

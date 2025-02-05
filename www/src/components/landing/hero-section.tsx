@@ -18,13 +18,13 @@ export const HeroSection = () => {
           className={cn(
             "inline-flex tracking-tight flex-col gap-1 transition text-center",
             "font-display text-4xl sm:text-5xl md:text-6xl font-semibold leading-none lg:text-[4rem]",
-            "text-zinc-50"
+            "text-zinc-50",
           )}
         >
           <span>
             Ship{" "}
-            <span className="relative text-brand-400">
-              <span className="absolute hidden sm:block z-0 bg-brand-200/10 -left-2 -top-1 -bottom-1 -right-2 md:-left-3 md:-top-0 md:-bottom-0 md:-right-3 -rotate-1" />
+            <span className="relative whitespace-nowrap text-brand-400">
+              <span className="absolute z-0 bg-brand-200/10 w-[105%] h-[105%] -left-[2.5%] -top-[2.5%] -rotate-1" />{" "}
               high-performance{" "}
               <span className="hidden sm:inline-block">⚡</span>
             </span>{" "}
