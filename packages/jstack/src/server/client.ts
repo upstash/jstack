@@ -3,7 +3,7 @@ import { ClientRequestOptions, ClientResponse, hc } from "hono/client"
 import { HTTPException } from "hono/http-exception"
 import { Endpoint, ResponseFormat, Schema } from "hono/types"
 import { ContentfulStatusCode } from "hono/utils/http-status"
-import { HasRequiredKeys, UnionToIntersection } from "hono/utils/types"
+import { UnionToIntersection } from "hono/utils/types"
 import { ClientSocket, SystemEvents } from "jstack-shared"
 import superjson from "superjson"
 import { Router, RouterSchema } from "./router"
@@ -22,17 +22,15 @@ type ClientResponseOfEndpoint<T extends Endpoint = Endpoint> = T extends {
 
 type ClientRequest<S extends Schema> = {
   [M in keyof S]: S[M] extends Endpoint & { input: infer R }
-    ? R extends object
-      ? HasRequiredKeys<R> extends true
-        ? (
-            args: R,
-            options?: ClientRequestOptions
-          ) => Promise<ClientResponseOfEndpoint<S[M]>>
-        : (
-            args?: R,
-            options?: ClientRequestOptions
-          ) => Promise<ClientResponseOfEndpoint<S[M]>>
-      : never
+    ? undefined extends R
+      ? (
+          args?: R,
+          options?: ClientRequestOptions,
+        ) => Promise<ClientResponseOfEndpoint<S[M]>>
+      : (
+          args: R,
+          options?: ClientRequestOptions,
+        ) => Promise<ClientResponseOfEndpoint<S[M]>>
     : never
 } & {
   $url: (
@@ -44,7 +42,7 @@ type ClientRequest<S extends Schema> = {
         : R extends { query: infer Q }
           ? { query: Q }
           : {}
-      : {}
+      : {},
   ) => URL
 } & (S["$get"] extends { outputFormat: "ws" }
     ? S["$get"] extends {
@@ -118,7 +116,7 @@ export interface ClientConfig extends ClientRequestOptions {
 }
 
 export const createClient = <T extends Hono<any, any, any> | Router<any>>(
-  options?: ClientConfig
+  options?: ClientConfig,
 ): UnionToIntersection<Client<T>> => {
   const {
     baseUrl = "",
@@ -204,14 +202,14 @@ function serializeWithSuperJSON(data: any): any {
     Object.entries(data).map(([key, value]) => [
       key,
       superjson.stringify(value),
-    ])
+    ]),
   )
 }
 
 function createProxy(
   baseClient: any,
   baseUrl: string,
-  path: string[] = []
+  path: string[] = [],
 ): any {
   return new Proxy(baseClient, {
     get(target, prop, receiver) {
