@@ -16,31 +16,38 @@ export const fetchStargazers = async ({ GITHUB_TOKEN }: { GITHUB_TOKEN: string }
     throw new Error("GitHub token is required but was not provided. Set the GITHUB_TOKEN environment variable.")
   }
 
-  try {
-    // Fetch repository details
-    const repoRes = await fetch("https://api.github.com/repos/upstash/jstack", {
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "Cloudflare Workers",
-      },
-    })
-
-    if (!repoRes.ok) {
-      const errorText = await repoRes.text()
-      const error = new Error(`GitHub API failed: ${repoRes.status} ${repoRes.statusText}`)
-
-      console.error("[GitHub API Error] Failed to fetch repository details:", {
-        status: repoRes.status,
-        statusText: repoRes.statusText,
-        error: errorText,
-        timestamp: new Date().toISOString(),
-      })
-
-      throw error
+  const makeRequest = async (url: string, useToken = true) => {
+    const headers: Record<string, string> = {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "Cloudflare Workers",
     }
 
+    if (useToken) {
+      headers.Authorization = `Bearer ${GITHUB_TOKEN}`
+    }
+
+    const res = await fetch(url, { headers })
+    
+    if (res.status === 403) {
+      // rate limit reached, retry without token
+      if (useToken) {
+        return makeRequest(url, false)
+      }
+
+      throw new Error("Rate limit reached for both authenticated and unauthenticated requests")
+    }
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(`GitHub API failed: ${res.status} ${res.statusText} - ${errorText}`)
+    }
+
+    return res
+  }
+
+  try {
+    const repoRes = await makeRequest("https://api.github.com/repos/upstash/jstack")
     const { stargazers_count } = (await repoRes.json()) as { stargazers_count: number }
 
     const lastPage = Math.ceil(stargazers_count / 20)
@@ -51,21 +58,9 @@ export const fetchStargazers = async ({ GITHUB_TOKEN }: { GITHUB_TOKEN: string }
 
     if (needExtraItems) {
       try {
-        const previousPageRes = await fetch(
-          `https://api.github.com/repos/upstash/jstack/stargazers?per_page=20&page=${lastPage - 1}`,
-          {
-            headers: {
-              Accept: "application/vnd.github+json",
-              Authorization: `Bearer ${GITHUB_TOKEN}`,
-              "X-GitHub-Api-Version": "2022-11-28",
-              "User-Agent": "Cloudflare Workers",
-            },
-          }
+        const previousPageRes = await makeRequest(
+          `https://api.github.com/repos/upstash/jstack/stargazers?per_page=20&page=${lastPage - 1}`
         )
-
-        if (!previousPageRes.ok) {
-          throw new Error(`Failed to fetch previous page: ${previousPageRes.status} ${previousPageRes.statusText}`)
-        }
 
         const previousPageStargazers = (await previousPageRes.json()) as Stargazer[]
         stargazers = previousPageStargazers.slice(-(20 - remainingItems))
@@ -79,21 +74,9 @@ export const fetchStargazers = async ({ GITHUB_TOKEN }: { GITHUB_TOKEN: string }
     }
 
     try {
-      const lastPageRes = await fetch(
-        `https://api.github.com/repos/upstash/jstack/stargazers?per_page=20&page=${lastPage}`,
-        {
-          headers: {
-            Accept: "application/vnd.github+json",
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "Cloudflare Workers",
-          },
-        }
+      const lastPageRes = await makeRequest(
+        `https://api.github.com/repos/upstash/jstack/stargazers?per_page=20&page=${lastPage}`
       )
-
-      if (!lastPageRes.ok) {
-        throw new Error(`Failed to fetch last page: ${lastPageRes.status} ${lastPageRes.statusText}`)
-      }
 
       const lastPageStargazers = (await lastPageRes.json()) as Stargazer[]
       stargazers = [...stargazers, ...lastPageStargazers].reverse()
