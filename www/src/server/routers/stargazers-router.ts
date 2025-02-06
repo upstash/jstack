@@ -9,7 +9,7 @@ export const stargazersRouter = j.router({
   /**
    * Background task to maintain real-time GitHub stargazer data in Redis
    *
-   * This endpoint is automatically called by QStash every 5s to:
+   * This endpoint is automatically called by QStash every 10s to:
    * 1. Fetch the latest stargazer data from GitHub
    * 2. Store it in Redis for fast retrieval
    *
@@ -49,7 +49,7 @@ export const stargazersRouter = j.router({
     })
 
     await redis.set("stargazer-info", { stargazerCount, stargazers })
-    await qstash.publishJSON({ url: ROUTER_URL, delay: "5s" })
+    await qstash.publishJSON({ url: ROUTER_URL, delay: "10s" })
 
     return c.json({ success: true })
   }),
