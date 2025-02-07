@@ -177,13 +177,19 @@ export class Router<
               const ctx = typedC.get("__middleware_output") || {}
               const parsedQuery = typedC.get("__parsed_query")
 
+              const queryInput =
+                Object.keys(parsedQuery || {}).length === 0
+                  ? undefined
+                  : parsedQuery
+
               // caught at app-level with .onError
-              const input = operation.schema?.parse(parsedQuery)
+              const input = operation.schema?.parse(queryInput)
               const result = await operation.handler({
                 c: c as ContextWithSuperJSON<E>,
                 ctx,
                 input,
               })
+
               return result === undefined ? c.json(undefined) : result
             },
           )
@@ -211,14 +217,20 @@ export class Router<
               const ctx = typedC.get("__middleware_output") || {}
               const parsedBody = typedC.get("__parsed_body")
 
+              const bodyInput =
+                Object.keys(parsedBody || {}).length === 0
+                  ? undefined
+                  : parsedBody
+
               // caught at app-level with .onError
-              const input = operation.schema?.parse(parsedBody)
+              const input = operation.schema?.parse(bodyInput)
 
               const result = await operation.handler({
                 c: c as ContextWithSuperJSON<E>,
                 ctx,
                 input,
               })
+
               return result === undefined ? c.json(undefined) : result
             },
           )
