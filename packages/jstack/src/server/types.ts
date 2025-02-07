@@ -156,4 +156,4 @@ export type InferInput<T> =
     ? I extends z.ZodTypeAny
       ? z.infer<I>
       : I
-    : {}
+    : void
