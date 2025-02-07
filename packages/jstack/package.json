@@ -48,9 +48,6 @@
       }
     }
   },
-  "bin": {
-    "jstack": "dist/cli/index.cjs"
-  },
   "description": "",
   "files": [
     "dist",
