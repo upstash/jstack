@@ -68,13 +68,13 @@ class JStack {
          * CORS middleware configuration with default settings for API endpoints.
          *
          * @default
-         * - Allows 'x-is-superjson' in headers
+         * - Allows 'x-is-superjson' and 'Content-Type' in headers
          * - Exposes 'x-is-superjson' in headers
          * - Accepts all origins
          * - Enables credentials
          */
         cors: cors({
-          allowHeaders: ["x-is-superjson"],
+          allowHeaders: ["x-is-superjson", "Content-Type"],
           exposeHeaders: ["x-is-superjson"],
           origin: (origin) => origin,
           credentials: true,
