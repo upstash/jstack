@@ -67,7 +67,7 @@ On any `privateProcedure` we can now safely access the user object:
 import { j, privateProcedure } from "../jstack"
 
 export const postRouter = j.router({
-  list: privateProcedure.query(({ c, ctx }) => {
+  list: privateProcedure.get(({ c, ctx }) => {
     // 👇 Access middleware data through ctx
     const { user } = ctx
 

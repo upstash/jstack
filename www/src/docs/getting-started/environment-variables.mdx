@@ -68,7 +68,7 @@ When using Cloudflare Workers (either locally with `wrangler dev` or in producti
    import { j } from "jstack"
 
    export const postRouter = j.router({
-     recent: j.procedure.query(({ c }) => {
+     recent: j.procedure.get(({ c }) => {
        const { DATABASE_URL } = env(c)
      }),
    })

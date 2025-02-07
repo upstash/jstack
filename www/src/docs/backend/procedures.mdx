@@ -7,8 +7,8 @@ summary: Procedures in JStack
 
 A procedure in JStack is an **API endpoint that handles a specific operation**. There are three kinds of procedures:
 
-- `query` procedures for GET requests
-- `mutation` procedures for POST requests
+- `get` procedures for GET requests
+- `post` procedures for POST requests
 - `ws` (WebSocket) procedures for real-time communication
 
 ```plaintext JStack File Structure {3}
@@ -90,7 +90,7 @@ export const privateProcedure = publicProcedure.use(authMiddleware)
 import { j, privateProcedure } from "../jstack"
 
 export const postRouter = j.router({
-  list: privateProcedure.query(({ c }) => {
+  list: privateProcedure.get(({ c }) => {
     return c.json({ posts: [] })
   }),
 })
@@ -100,9 +100,9 @@ export const postRouter = j.router({
 
 ---
 
-## Query Procedures
+## GET Procedures
 
-Query procedures are used to read data from your API. They accept input via URL query parameters and use HTTP GET requests. Query procedures are defined using the `query()` method.
+`GET` procedures are used to read data from your API. They accept input via URL query parameters and use HTTP GET requests. Define them using the `.get()` method.
 
 The handler receives the following objects:
 
@@ -114,7 +114,7 @@ The handler receives the following objects:
 import { j, publicProcedure } from "../jstack"
 
 export const postRouter = j.router({
-  getRecent: publicProcedure.query(({ c, ctx, input }) => {
+  recent: publicProcedure.get(({ c, ctx, input }) => {
     const post = {
       id: 1,
       title: "My first post",
@@ -125,21 +125,21 @@ export const postRouter = j.router({
 })
 ```
 
-To call a query procedure in your application, use your client's `$get` method:
+To call a `GET` procedure in your application, use your client's `$get` method:
 
 ```ts page.tsx
 import { client } from "@/lib/client"
 
-const res = await client.post.getRecent.$get()
+const res = await client.post.recent.$get()
 ```
 
 ---
 
-## Mutation Procedures
+## POST Procedures
 
-Mutation procedures are used to modify, create or delete data. They accept input via the request body and use HTTP POST requests. Mutation procedures are defined using the `mutation()` method.
+`POST` procedures are used to modify, create or delete data. They accept input via the request body and use HTTP POST requests. Define them using the `.post()` method.
 
-Like queries, the handler receives the following objects:
+Like GET procedures, the handler receives the following objects:
 
 - `c`: [Hono Context](https://hono.dev/docs/api/context), e.g. headers, request info, env variables
 - `ctx`: Your context, e.g. database instance, authenticated user
@@ -149,13 +149,13 @@ Like queries, the handler receives the following objects:
 import { j, publicProcedure } from "../jstack"
 
 export const postRouter = j.router({
-  create: publicProcedure.mutation(({ c, ctx, input }) => {
+  create: publicProcedure.post(({ c, ctx, input }) => {
     return c.json({ message: "Post created successfully!" })
   }),
 })
 ```
 
-To call a mutation procedure in your application, use your client's `$post` method:
+To call a `POST` procedure in your application, use your client's `$post` method:
 
 ```ts page.tsx
 import { client } from "@/lib/client"
@@ -176,7 +176,7 @@ import { j, publicProcedure } from "../jstack"
 export const postRouter = j.router({
   create: publicProcedure
     .input(z.object({ title: z.string() }))
-    .mutation(({ c, ctx, input }) => {
+    .post(({ c, ctx, input }) => {
       // 👇 Guaranteed to exist & automatically typed
       const { title } = input
 
@@ -185,7 +185,7 @@ export const postRouter = j.router({
 })
 ```
 
-If an API request does not contain the expected input (either as a URL parameter for `query()` or as a request body for `mutation()`), your global `onError` will automatically catch this error for easy frontend handling.
+If an API request does not contain the expected input (either as a URL parameter for `get()` or as a request body for `post()`), your global `onError` will automatically catch this error for easy frontend handling.
 
 Also, if you call this procedure from the client, you'll get immediate feedback about the expected input:
 

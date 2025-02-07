@@ -42,11 +42,11 @@ app/
    import { j, publicProcedure } from "../jstack"
 
    export const postRouter = j.router({
-     list: publicProcedure.query(({ c }) => {
+     list: publicProcedure.get(({ c }) => {
        return c.json({ posts: [] })
      }),
 
-     create: publicProcedure.mutation(({ c }) => {
+     create: publicProcedure.post(({ c }) => {
        return c.json({ success: true })
      }),
    })

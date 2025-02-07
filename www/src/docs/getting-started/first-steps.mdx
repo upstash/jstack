@@ -117,7 +117,7 @@ This is what a basic router looks like:
 import { j, publicProcedure } from "../jstack"
 
 export const postRouter = j.router({
-  recent: publicProcedure.query(({ c }) => {
+  recent: publicProcedure.get(({ c }) => {
     return c.json({ title: "first post" })
   }),
 })
