@@ -1,4 +1,3 @@
-
 import { Context, Hono, Next } from "hono"
 import { env } from "hono/adapter"
 import { HTTPException } from "hono/http-exception"
@@ -62,12 +61,9 @@ export class Router<
   E extends Env = any,
 > extends Hono<E, RouterSchema<T>, any> {
   _metadata: {
-    subRouters: Record<string, Router<any>>
+    subRouters: Record<string, Promise<Router<any>> | Router<any>>
     config: RouterConfig | Record<string, RouterConfig>
-    procedures: Record<
-      string,
-      Record<string, { type: "get" | "post" | "ws" }>
-    >
+    procedures: Record<string, Record<string, { type: "get" | "post" | "ws" }>>
     registeredPaths: string[]
   }
 
@@ -103,6 +99,31 @@ export class Router<
     }
 
     this.setupRoutes(procedures)
+  }
+
+  registerSubrouterMiddleware() {
+    this.use(async (c, next) => {
+      const [basePath, routerName] = c.req.path
+        .split("/")
+        .filter(Boolean)
+        .slice(0, 2)
+
+      const key = `/${basePath}/${routerName}`
+      const subRouter = await this._metadata.subRouters[key]
+
+      if (subRouter) {
+        const rewrittenPath = "/" + c.req.path.split("/").slice(3).join("/")
+        const newUrl = new URL(c.req.url)
+        newUrl.pathname = rewrittenPath
+
+        const newRequest = new Request(newUrl, c.req.raw)
+        const response = await subRouter.fetch(newRequest, c.env)
+
+        return response
+      }
+
+      return next()
+    })
   }
 
   private setupRoutes(procedures: Record<string, OperationType<any, any, E>>) {
@@ -164,7 +185,7 @@ export class Router<
                 input,
               })
               return result === undefined ? c.json(undefined) : result
-            }
+            },
           )
         } else {
           this.get(path, ...operationMiddlewares, async (c) => {
@@ -199,7 +220,7 @@ export class Router<
                 input,
               })
               return result === undefined ? c.json(undefined) : result
-            }
+            },
           )
         } else {
           this.post(path, ...operationMiddlewares, async (c) => {
@@ -302,7 +323,7 @@ export class Router<
               status: 101,
               webSocket: client,
             })
-          }
+          },
         )
       }
     })
