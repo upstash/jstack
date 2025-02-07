@@ -6,7 +6,7 @@ export const searchRouter = j.router({
   byQuery: publicProcedure
     .use(vectorMiddleware)
     .input(z.object({ query: z.string().min(1).max(1000) }))
-    .query(async ({ c, ctx, input }) => {
+    .get(async ({ c, ctx, input }) => {
       const { index } = ctx
       const { query } = input
 

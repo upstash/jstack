@@ -15,7 +15,7 @@ export const stargazersRouter = j.router({
    *
    * @internal This endpoint is meant to be called by QStash scheduler only
    */
-  prefetch: publicProcedure.mutation(async ({ c, ctx, input }) => {
+  prefetch: publicProcedure.post(async ({ c, ctx, input }) => {
     const { redis, qstash } = ctx
     const {
       AMPLIFY_URL,
@@ -62,7 +62,7 @@ export const stargazersRouter = j.router({
    *
    * @returns {Promise<StargazerData>} List of recent stargazers with metadata
    */
-  recent: publicProcedure.query(async ({ c, ctx }) => {
+  recent: publicProcedure.get(async ({ c, ctx }) => {
     const { redis } = ctx
 
     const stargazerInfo = await redis.get<StargazerInfo>("stargazer-info")
