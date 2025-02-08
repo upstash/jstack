@@ -51,5 +51,5 @@ export function useWebSocket<
       })
       socket.close()
     }
-  }, [socket, opts?.enabled]) // Add socket to dependencies
+  }, [socket, opts?.enabled]) 
 }
