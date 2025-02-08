@@ -16,7 +16,7 @@ export const fetchStargazers = async ({ GITHUB_TOKEN }: { GITHUB_TOKEN: string }
     throw new Error("GitHub token is required but was not provided. Set the GITHUB_TOKEN environment variable.")
   }
 
-  const makeRequest = async (url: string, useToken = true) => {
+  const makeRequest = async (url: string, useToken = true, retries = 3) => {
     const headers: Record<string, string> = {
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
@@ -27,23 +27,42 @@ export const fetchStargazers = async ({ GITHUB_TOKEN }: { GITHUB_TOKEN: string }
       headers.Authorization = `Bearer ${GITHUB_TOKEN}`
     }
 
-    const res = await fetch(url, { headers })
-    
-    if (res.status === 403) {
-      // rate limit reached, retry without token
-      if (useToken) {
-        return makeRequest(url, false)
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 10000)
+
+      const res = await fetch(url, { 
+        headers, 
+        signal: controller.signal 
+      })
+      clearTimeout(timeout)
+      
+      if (res.status === 403) {
+        if (useToken) {
+          return makeRequest(url, false, retries)
+        }
+        throw new Error("Rate limit reached for both authenticated and unauthenticated requests")
       }
 
-      throw new Error("Rate limit reached for both authenticated and unauthenticated requests")
-    }
+      if (!res.ok) {
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return makeRequest(url, useToken, retries - 1)
+        }
+        const errorText = await res.text()
+        throw new Error(`GitHub API failed: ${res.status} ${res.statusText} - ${errorText}`)
+      }
 
-    if (!res.ok) {
-      const errorText = await res.text()
-      throw new Error(`GitHub API failed: ${res.status} ${res.statusText} - ${errorText}`)
+      return res
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        if (retries > 0) {
+          return makeRequest(url, useToken, retries - 1)
+        }
+        throw new Error('Request timeout')
+      }
+      throw error
     }
-
-    return res
   }
 
   try {
