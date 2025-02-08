@@ -1,6 +1,7 @@
 import { intro, isCancel, outro, select, text } from "@clack/prompts"
 import color from "picocolors"
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager.js"
+import path from "path"
 
 export interface CliResults {
   projectName: string
@@ -12,6 +13,19 @@ export interface CliResults {
 
 export type Dialect = CliResults["dialect"]
 export type Orm = CliResults["orm"]
+
+// NPM package name validation regex
+const VALID_PACKAGE_NAME = /^(?:(?:@(?:[a-z0-9-~][a-z0-9-.~]*)?\/)?[a-z0-9-._~]*[a-z0-9-~]|[a-z0-9-~])$/
+
+// Function to sanitize package name
+const sanitizePackageName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9-~]/g, '-')
+    .replace(/^[._]/, '')
+    .replace(/^-+|-+$/g, '')
+    || 'jstack-app'
+}
 
 export async function runCli(): Promise<CliResults | undefined> {
   console.clear()
@@ -31,6 +45,19 @@ export async function runCli(): Promise<CliResults | undefined> {
       validate: (value) => {
         if (!value) return "Please enter a project name"
         if (value.length > 50) return "Project name must be less than 50 characters"
+        
+        // Handle "." input by using current directory name
+        if (value === ".") {
+          const currentDir = path.basename(process.cwd())
+          value = currentDir
+        }
+
+        // Validate against npm package name rules
+        if (!VALID_PACKAGE_NAME.test(value)) {
+          const sanitized = sanitizePackageName(value)
+          return `Invalid package name. Try: ${sanitized}`
+        }
+        
         return
       },
     }))
