@@ -5,39 +5,17 @@ summary: Deploy JStack to Vercel
 
 # Deploy to Vercel
 
-JStack can be deployed to Vercel, providing a serverless runtime for your API with automatic deployments and previews. This guide will walk you through the deployment process.
-
----
-
-## Prerequisites
-
-1. Install the [Vercel CLI](https://vercel.com/cli)
-
-   ```bash Terminal
-   npm install -g vercel
-   ```
-
-2. Make sure you have an account at [Vercel](https://vercel.com)
+**Deploying JStack to Vercel is like deploying any other Next.js app**, it works out of the box. This guide will walk you through the deployment process.
 
 ---
 
 ## Deployment Steps
 
-1. Deploy your backend to Vercel using the CLI or by connecting your GitHub repository. For CLI deployment:
+1. **Configure Client URL**
 
-   ```bash Terminal
-   vercel
-   ```
+   Update `lib/client.ts` to use the Vercel URL in production. Vercel automatically provides your deployment URL as `process.env.VERCEL_URL`:
 
-   The console output will show your deployment URL.
-
-   <Frame>
-     <Image src="/vercel-deployment-url.png" alt="Deploy JStack to Vercel" />
-   </Frame>
-
-2. Add the deployment URL to the client:
-
-   ```ts lib/client.ts {5,8-16}
+   ```ts lib/client.ts {5,9-17}
    import type { AppRouter } from "@/server"
    import { createClient } from "jstack"
 
@@ -46,15 +24,26 @@ JStack can be deployed to Vercel, providing a serverless runtime for your API wi
    })
 
    function getBaseUrl() {
-     // 👇 In production, use the Vercel URL
-     if (process.env.NODE_ENV === "production") {
-       return process.env.VERCEL_URL || "https://<YOUR_DEPLOYMENT>.vercel.app"
+     // 👇 Use browser URL if client-side
+     if (typeof window !== "undefined") {
+       return window.location.origin
      }
 
-     // 👇 Locally, use localhost
+     // 👇 Use Vercel URL in production
+     if (process.env.VERCEL_URL) {
+       return `https://${process.env.VERCEL_URL}`
+     }
+
+     // 👇 Default to localhost
      return `http://localhost:3000`
    }
    ```
+
+2. **Deploy to Vercel**
+
+   - Via GitHub: Connect repository through Vercel dashboard
+   - Via CLI: Run `vercel deploy`
+   - Vercel automatically sets the production URL
 
 ---
 
@@ -62,11 +51,18 @@ JStack can be deployed to Vercel, providing a serverless runtime for your API wi
 
 Configure your environment variables in the Vercel dashboard:
 
-1. Go to your project settings
-2. Navigate to the "Environment Variables" tab
-3. Add your variables
+- Go to your project settings
+- Navigate to the "Environment Variables" tab
+- Add your variables
 
-Alternatively, you can use the CLI:
+<Frame>
+  <Image
+    src="/vercel-environment-variables.png"
+    alt="Environment variables for Vercel deployment"
+  />
+</Frame>
+
+Alternatively, you can use the CLI to add environment variables:
 
 ```bash Terminal
 vercel env add <KEY>
@@ -74,26 +70,11 @@ vercel env add <KEY>
 
 ---
 
-## Production Deployment
-
-When you're ready to deploy to production:
-
-1. Push your changes to your connected Git repository, or run:
-
-   ```bash Terminal
-   vercel --prod
-   ```
-
-2. Vercel will automatically build and deploy your application
-3. Your API will be available at `https://<YOUR_PROJECT>.vercel.app/api`
-
----
-
 ## Common Problems
 
 ### CORS Configuration
 
-If you're experiencing CORS issues, ensure your API router includes CORS middleware:
+If you're experiencing CORS problems, make sure your base API includes CORS middleware:
 
 ```ts server/index.ts {8}
 import { InferRouterInputs, InferRouterOutputs } from "jstack"
