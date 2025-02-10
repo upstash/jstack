@@ -32,6 +32,9 @@ const getGitHubStars = unstable_cache(
     const response = await fetch(
       "https://api.github.com/repos/upstash/jstack",
       {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
         next: {
           tags: ["github-stars"],
           revalidate: 60,
