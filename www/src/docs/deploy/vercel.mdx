@@ -5,4 +5,114 @@ summary: Deploy JStack to Vercel
 
 # Deploy to Vercel
 
-Coming soon! 🔜
+JStack can be deployed to Vercel, providing a serverless runtime for your API with automatic deployments and previews. This guide will walk you through the deployment process.
+
+---
+
+## Prerequisites
+
+1. Install the [Vercel CLI](https://vercel.com/cli)
+
+   ```bash Terminal
+   npm install -g vercel
+   ```
+
+2. Make sure you have an account at [Vercel](https://vercel.com)
+
+---
+
+## Deployment Steps
+
+1. Deploy your backend to Vercel using the CLI or by connecting your GitHub repository. For CLI deployment:
+
+   ```bash Terminal
+   vercel
+   ```
+
+   The console output will show your deployment URL.
+
+   <Frame>
+     <Image src="/vercel-deployment-url.png" alt="Deploy JStack to Vercel" />
+   </Frame>
+
+2. Add the deployment URL to the client:
+
+   ```ts lib/client.ts {5,8-16}
+   import type { AppRouter } from "@/server"
+   import { createClient } from "jstack"
+
+   export const client = createClient<AppRouter>({
+     baseUrl: `${getBaseUrl()}/api`,
+   })
+
+   function getBaseUrl() {
+     // 👇 In production, use the Vercel URL
+     if (process.env.NODE_ENV === "production") {
+       return process.env.VERCEL_URL || "https://<YOUR_DEPLOYMENT>.vercel.app"
+     }
+
+     // 👇 Locally, use localhost
+     return `http://localhost:3000`
+   }
+   ```
+
+---
+
+## Environment Variables
+
+Configure your environment variables in the Vercel dashboard:
+
+1. Go to your project settings
+2. Navigate to the "Environment Variables" tab
+3. Add your variables
+
+Alternatively, you can use the CLI:
+
+```bash Terminal
+vercel env add <KEY>
+```
+
+---
+
+## Production Deployment
+
+When you're ready to deploy to production:
+
+1. Push your changes to your connected Git repository, or run:
+
+   ```bash Terminal
+   vercel --prod
+   ```
+
+2. Vercel will automatically build and deploy your application
+3. Your API will be available at `https://<YOUR_PROJECT>.vercel.app/api`
+
+---
+
+## Common Problems
+
+### CORS Configuration
+
+If you're experiencing CORS issues, ensure your API router includes CORS middleware:
+
+```ts server/index.ts {8}
+import { InferRouterInputs, InferRouterOutputs } from "jstack"
+import { postRouter } from "./routers/post-router"
+import { j } from "./jstack"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+const appRouter = j.mergeRouters(api, {
+  post: postRouter,
+})
+
+export type AppRouter = typeof appRouter
+
+export default appRouter
+```
+
+[&rarr; More about CORS in JStack](/docs/backend/app-router#cors)
