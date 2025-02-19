@@ -7,6 +7,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { DetailedHTMLProps, HTMLAttributes } from "react"
+import { DocsPager } from "./pager"
 
 interface Heading {
   level: number
@@ -40,12 +41,15 @@ const Page = async ({ params }: PageProps) => {
       offsetRem: undefined,
     }
   })
-  
-  type CodeProps = DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTMLPreElement> & {
-    language: string,
+
+  type CodeProps = DetailedHTMLProps<
+    HTMLAttributes<HTMLPreElement>,
+    HTMLPreElement
+  > & {
+    language: string
     code: string
   }
-  
+
   return (
     <ActiveSectionObserver headings={headings}>
       <div className="pb-20 space-y-6">
@@ -129,7 +133,7 @@ const Page = async ({ params }: PageProps) => {
             ),
             h1: ({ children }) => {
               const element = sections.find(
-                (entry) => entry.title === children?.toString()
+                (entry) => entry.title === children?.toString(),
               )
 
               if (!element) {
@@ -149,7 +153,7 @@ const Page = async ({ params }: PageProps) => {
             },
             h2: ({ children }) => {
               const element = sections.find(
-                (entry) => entry.title === children?.toString()
+                (entry) => entry.title === children?.toString(),
               )
 
               if (!element) {
@@ -169,7 +173,7 @@ const Page = async ({ params }: PageProps) => {
             },
             h3: ({ children }) => {
               const element = sections.find(
-                (entry) => entry.title === children?.toString()
+                (entry) => entry.title === children?.toString(),
               )
 
               if (!element) {
@@ -191,6 +195,7 @@ const Page = async ({ params }: PageProps) => {
           code={document.mdx}
           className="space-y-6"
         />
+        <DocsPager page={document} />
       </div>
     </ActiveSectionObserver>
   )
