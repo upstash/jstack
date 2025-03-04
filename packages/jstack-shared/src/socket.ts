@@ -45,26 +45,6 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 
     this.ws = ws
     this.emitter = new EventEmitter(ws, { incomingSchema, outgoingSchema })
-
-    this.ws.addEventListener("message", (event) => {
-      try {
-        const data = z.string().parse(event.data)
-        const eventSchema = z.tuple([z.string(), z.unknown()])
-
-        const parsedData = JSON.parse(data)
-
-        const [eventName, eventData] = eventSchema.parse(parsedData)
-
-        if (eventName === "ping") {
-          this.ws.send(JSON.stringify(["pong", null]))
-          return
-        }
-
-        this.emitter.handleEvent(eventName, eventData)
-      } catch (err) {
-        logger.error(`Unable to handle event "${event.data}":`, err)
-      }
-    })
   }
 
   get rooms() {

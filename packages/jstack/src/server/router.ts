@@ -19,35 +19,35 @@ import {
 
 export type RouterSchema<T extends Record<string, any>> = {
   [K in keyof T]: T[K] extends WebSocketOperation<any, any>
-    ? {
-        $get: {
-          input: InferInput<T[K]>
-          output: {}
-          incoming: NonNullable<T[K]["incoming"]>
-          outgoing: NonNullable<T[K]["outgoing"]>
-          outputFormat: "ws"
-          status: StatusCode
-        }
-      }
-    : T[K] extends GetOperation<any, any>
-      ? {
-          $get: {
-            input: InferInput<T[K]>
-            output: ReturnType<T[K]["handler"]>
-            outputFormat: "json"
-            status: StatusCode
-          }
-        }
-      : T[K] extends PostOperation<any, any>
-        ? {
-            $post: {
-              input: InferInput<T[K]>
-              output: ReturnType<T[K]["handler"]>
-              outputFormat: "json"
-              status: StatusCode
-            }
-          }
-        : never
+  ? {
+    $get: {
+      input: InferInput<T[K]>
+      output: {}
+      incoming: NonNullable<T[K]["incoming"]>
+      outgoing: NonNullable<T[K]["outgoing"]>
+      outputFormat: "ws"
+      status: StatusCode
+    }
+  }
+  : T[K] extends GetOperation<any, any>
+  ? {
+    $get: {
+      input: InferInput<T[K]>
+      output: ReturnType<T[K]["handler"]>
+      outputFormat: "json"
+      status: StatusCode
+    }
+  }
+  : T[K] extends PostOperation<any, any>
+  ? {
+    $post: {
+      input: InferInput<T[K]>
+      output: ReturnType<T[K]["handler"]>
+      outputFormat: "json"
+      status: StatusCode
+    }
+  }
+  : never
 }
 
 interface InternalContext {
@@ -301,19 +301,18 @@ export class Router<
 
             handler.onConnect?.({ socket })
 
-            server.addEventListener("close", async () => {
+            server.onclose = async () => {
               socket.close()
               await handler.onDisconnect?.({ socket })
-            })
+            }
 
-            server.addEventListener("error", async (error) => {
+            server.onerror = async (error) => {
               socket.close()
               await handler.onError?.({ socket, error })
-            })
+            }
 
             const eventSchema = z.tuple([z.string(), z.unknown()])
-
-            server.addEventListener("message", async (event) => {
+            server.onmessage = async (event) => {
               try {
                 const rawData = z.string().parse(event.data)
                 const parsedData = JSON.parse(rawData)
@@ -329,7 +328,7 @@ export class Router<
               } catch (err) {
                 logger.error("Failed to process message:", err)
               }
-            })
+            }
 
             return new Response(null, {
               status: 101,
