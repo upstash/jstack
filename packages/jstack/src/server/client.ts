@@ -7,6 +7,7 @@ import { UnionToIntersection } from "hono/utils/types"
 import { ClientSocket, SystemEvents } from "jstack-shared"
 import superjson from "superjson"
 import { Router, RouterSchema } from "./router"
+import { InferSchemaFromRouters } from './merge-routers'
 
 type ClientResponseOfEndpoint<T extends Endpoint = Endpoint> = T extends {
   output: infer O
@@ -56,32 +57,29 @@ type ClientRequest<S extends Schema> = {
       : {}
     : {})
 
-type PathToChain<
-  Path extends string,
-  S extends Schema,
-  Original extends string = Path,
-> = Path extends `/${infer P}`
-  ? PathToChain<P, S, Path>
-  : Path extends `${infer P}/${infer R}`
-    ? {
-        [K in P]: PathToChain<R, S, Original>
-      }
-    : {
-        [K in Path extends "" ? "index" : Path]: ClientRequest<
-          S extends Record<string, unknown> ? S[Original] : never
-        >
-      }
-
 type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never
 
-type Client<T extends Hono<any, any, any> | Router<any, any>> =
-  T extends Hono<any, infer S>
-    ? S extends Record<infer K, Schema>
-      ? K extends string
-        ? PathToChain<K, UnwrapRouterSchema<S>>
+type IsMergedRouter<T> = keyof T & 'a' extends 'b' ? true : false
+
+type InferRouter<T> = T extends Router<InferSchemaFromRouters<infer S>> 
+    ? IsMergedRouter<S> extends true
+      ? S
+      : T extends Router<infer S>
+        ? S
         : never
-      : never
     : never
+
+type GetPathRequest<T, K, K2> = T extends Record<string, any>
+    ? ClientRequest<T[`${K & string}/${K2 & string}`]>
+    : never
+
+type Client<T extends Hono<any, any, any> | Router<any, any>> = {
+    [K in keyof InferRouter<T>]: {
+        [K2 in keyof InferRouter<InferRouter<T>[K]>]: T extends Hono<any, infer S>
+            ? GetPathRequest<UnionToIntersection<UnwrapRouterSchema<S>>, K, K2>
+            : never
+    }
+}
 
 type OperationIO<
   T extends Hono<any, any, any> | Router<any, any>,
