@@ -50,7 +50,7 @@ const authMiddleware = j.middleware(async ({ c, next }) => {
   }
 
   // 👇 Attach user to `ctx` object
-  await next({ user: { name: "John Doe" } })
+  return await next({ user: { name: "John Doe" } })
 })
 
 /**
