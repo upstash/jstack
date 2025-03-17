@@ -8,6 +8,19 @@ import { HTMLAttributes, useCallback, useEffect } from "react"
 
 interface TableOfContentsProps extends HTMLAttributes<HTMLDivElement> {}
 
+const getIndentationClass = (level: number) => {
+  switch (level) {
+    case 2:
+      return "pl-4"
+    case 3:
+      return "pl-8"
+    case 4:
+      return "pl-12"
+    default:
+      return "pl-4"
+  }
+}
+
 export const TableOfContents = ({
   className,
   ...props
@@ -38,7 +51,7 @@ export const TableOfContents = ({
   return (
     <div className="antialiased">
       <div className={cn("text-sm/7 relative", className)} {...props}>
-        <p className="text-sm/7 font-semibold text-muted-light pl-4 ">
+        <p className="text-sm/7 font-semibold text-muted-light pl-4">
           On this page
         </p>
         <ul>
@@ -46,6 +59,7 @@ export const TableOfContents = ({
             const isVisible = visibleSections.some(
               (section) => section === slugify(heading.text),
             )
+            const indentClass = getIndentationClass(heading.level)
 
             return (
               <li key={i} className="leading-relaxed py-1">
@@ -62,7 +76,8 @@ export const TableOfContents = ({
                   />
                   <p
                     className={cn(
-                      "text-muted-dark hover:text-muted-light transition pl-4 py-1",
+                      "text-muted-dark hover:text-muted-light transition py-1",
+                      indentClass,
                       {
                         "text-muted-light": isVisible,
                       },
