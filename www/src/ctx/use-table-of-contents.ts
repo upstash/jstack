@@ -16,9 +16,8 @@ interface State {
 export const useTableOfContents = create<State>()((set) => ({
   allHeadings: [],
   activeHeadingIds: [],
-  setAllHeadings: (allHeadings) => set((state) => ({ allHeadings })),
-  sections: [],
   visibleSections: [],
+  setAllHeadings: (allHeadings) => set(() => ({ allHeadings })),
   setVisibleSections: (visibleSections) =>
-    set((state) => (state.visibleSections.join() === visibleSections.join() ? {} : { visibleSections })),
+    set((state) => (state.visibleSections.join() === visibleSections.join() ? state : { ...state, visibleSections })),
 }))

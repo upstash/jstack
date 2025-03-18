@@ -16,18 +16,19 @@ export function useWebSocket<
   eventsRef.current = events
 
   useEffect(() => {
-    if (opts?.enabled === false) {
+    if (opts?.enabled === false || !socket) {
       return
     }
 
     const defaultHandlers = {
       onConnect: () => {},
-      onError: () => {},
+      onError: (error: Error) => console.error("WebSocket error:", error),
+      onDisconnect: () => socket.reconnect(),
     }
 
     const mergedEvents = {
       ...defaultHandlers,
-      ...events,
+      ...eventsRef.current, // Use ref to avoid stale closures
     }
 
     const eventNames = Object.keys(mergedEvents) as Array<
@@ -36,7 +37,6 @@ export function useWebSocket<
 
     eventNames.forEach((eventName) => {
       const handler = mergedEvents[eventName]
-
       if (handler) {
         socket.on(eventName, handler)
       }
@@ -45,8 +45,11 @@ export function useWebSocket<
     return () => {
       eventNames.forEach((eventName) => {
         const handler = mergedEvents[eventName]
-        socket.off(eventName, handler)
+        if (handler) {
+          socket.off(eventName, handler)
+        }
       })
+      socket.close()
     }
-  }, [opts?.enabled])
+  }, [socket, opts?.enabled]) 
 }
