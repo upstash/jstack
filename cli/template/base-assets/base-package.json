@@ -9,31 +9,31 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.0.0",
-    "@tanstack/react-query": "^5.51.23",
+    "@tailwindcss/postcss": "^4.0.15",
+    "@tanstack/react-query": "^5.69.0",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.39.0",
-    "hono": "^4.7.0",
-    "jstack": "^1.0.6",
-    "next": "^15.1.6",
+    "drizzle-orm": "^0.41.0",
+    "hono": "^4.7.5",
+    "jstack": "^1.0.8",
+    "next": "^15.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "superjson": "^2.2.1",
-    "tailwind-merge": "^2.5.2",
-    "zod": "^3.24.1"
+    "superjson": "^2.2.2",
+    "tailwind-merge": "^3.0.2",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "dotenv": "^16.4.5",
-    "@cloudflare/workers-types": "^4.20250214.0",
-    "@types/node": "^22.10.6",
-    "@types/react": "^19.0.7",
-    "@types/react-dom": "^19.0.3",
-    "drizzle-kit": "^0.30.1",
-    "eslint": "^9.18.0",
-    "eslint-config-next": "^15.1.4",
-    "postcss": "^8",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5",
-    "wrangler": "^3.109.1"
+    "dotenv": "^16.4.7",
+    "@cloudflare/workers-types": "^4.20250321.0",
+    "@types/node": "^22.13.12",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "drizzle-kit": "^0.30.5",
+    "eslint": "^9.23.0",
+    "eslint-config-next": "^15.2.3",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.0.15",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.4.0"
   }
 }
