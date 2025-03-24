@@ -1,0 +1,30 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "jstack-app",
+	"main": "src/server/index.ts",
+	"compatibility_date": "2025-03-22",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_als",
+		"no_handle_cross_request_promise_resolution"
+	],
+	// Add these in if you want to use a custom domain
+	// "routes": [
+	// 	{
+	// 		"pattern": "sub.domain.com",
+	// 		"custom_domain": true
+	// 	}
+	// ],
+	// "workers_dev": false,
+	// "preview_urls": false,
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
+	"placement": {
+		"mode": "smart"
+	},
+	"dev": {
+		"port": 8080
+	}
+}
