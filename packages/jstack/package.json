@@ -1,6 +1,6 @@
 {
   "name": "jstack",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "author": "Josh tried coding",
   "main": "dist/server/index.js",
   "module": "dist/server/index.mjs",
@@ -17,8 +17,7 @@
     "superjson": "^2.2.2",
     "ts-node": "^10.9.2",
     "tsup": "^8.3.5",
-    "typescript": "^5.7.2",
-    "zod": "^3.24.1"
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
     "zod": ">=3.24.1",
