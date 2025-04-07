@@ -23,6 +23,7 @@ export const DOCS_CONFIG = {
         "api-client",
         "middleware",
         "websockets",
+        "performance"
       ],
     },
     deploy: {

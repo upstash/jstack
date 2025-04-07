@@ -5,4 +5,95 @@ summary: Deploy JStack to Vercel
 
 # Deploy to Vercel
 
-Coming soon! 🔜
+**Deploying JStack to Vercel is like deploying any other Next.js app**, it works out of the box. This guide will walk you through the deployment process.
+
+---
+
+## Deployment Steps
+
+1. **Configure Client URL**
+
+   Update `lib/client.ts` to use the Vercel URL in production. Vercel automatically provides your deployment URL as `process.env.VERCEL_URL`:
+
+   ```ts lib/client.ts {5,9-17}
+   import type { AppRouter } from "@/server"
+   import { createClient } from "jstack"
+
+   export const client = createClient<AppRouter>({
+     baseUrl: `${getBaseUrl()}/api`,
+   })
+
+   function getBaseUrl() {
+     // 👇 Use browser URL if client-side
+     if (typeof window !== "undefined") {
+       return window.location.origin
+     }
+
+     // 👇 Use Vercel URL in production
+     if (process.env.VERCEL_URL) {
+       return `https://${process.env.VERCEL_URL}`
+     }
+
+     // 👇 Default to localhost
+     return `http://localhost:3000`
+   }
+   ```
+
+2. **Deploy to Vercel**
+
+   - Via GitHub: Connect repository through Vercel dashboard
+   - Via CLI: Run `vercel deploy`
+   - Vercel automatically sets the production URL
+
+---
+
+## Environment Variables
+
+Configure your environment variables in the Vercel dashboard:
+
+- Go to your project settings
+- Navigate to the "Environment Variables" tab
+- Add your variables
+
+<Frame>
+  <Image
+    src="/vercel-environment-variables.png"
+    alt="Environment variables for Vercel deployment"
+  />
+</Frame>
+
+Alternatively, you can use the CLI to add environment variables:
+
+```bash Terminal
+vercel env add <KEY>
+```
+
+---
+
+## Common Problems
+
+### CORS Configuration
+
+If you're experiencing CORS problems, make sure your base API includes CORS middleware:
+
+```ts server/index.ts {8}
+import { InferRouterInputs, InferRouterOutputs } from "jstack"
+import { postRouter } from "./routers/post-router"
+import { j } from "./jstack"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+const appRouter = j.mergeRouters(api, {
+  post: postRouter,
+})
+
+export type AppRouter = typeof appRouter
+
+export default appRouter
+```
+
+[&rarr; More about CORS in JStack](/docs/backend/app-router#cors)

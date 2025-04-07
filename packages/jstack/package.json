@@ -63,6 +63,6 @@
   "type": "module",
   "types": "dist/server/index.d.ts",
   "dependencies": {
-    "jstack-shared": "0.0.2"
+    "jstack-shared": "^0.0.3"
   }
 }

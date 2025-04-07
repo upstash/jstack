@@ -1,0 +1,58 @@
+---
+title: Performance
+summary: Optimizing JStack Performance
+---
+
+# Performance
+
+JStack is built on lightweight software such as Hono and Drizzle ORM for high performance out of the box.
+
+To further optimize your app, JStack allows you to **optimize bundle sizes and significantly reduce cold starts** through built-in dynamic router and dependency loading.
+
+---
+
+## Dynamically Loading Routers
+
+Dynamically load routers using the `dynamic()` function to maintain high performance when scaling to many routers. This approach reduces the initial bundle size & improves cold starts:
+
+```ts server/index.ts {2,11-12}
+import { j } from "./jstack"
+import { dynamic } from "jstack"
+
+const api = j
+  .router()
+  .basePath("/api")
+  .use(j.defaults.cors)
+  .onError(j.defaults.errorHandler)
+
+const appRouter = j.mergeRouters(api, {
+  users: dynamic(() => import("./routers/user-router")),
+  posts: dynamic(() => import("./routers/post-router")),
+})
+
+export type AppRouter = typeof appRouter
+export default appRouter
+```
+
+---
+
+## Dynamic Imports in Procedures
+
+JStack also supports dynamic imports within procedures for code splitting at the procedure level. Just like dynamically loading routers, this approach reduces the initial bundle size and can significantly improve cold starts:
+
+```ts server/routers/user-router.ts {6-7}
+import { j, publicProcedure } from "../jstack"
+
+export const userRouter = j.router({
+  generateReport: publicProcedure.get(async ({ c }) => {
+      // 👇 Dynamically import heavy dependencies
+      const { generatePDF } = await import("./utils/pdf-generator")
+      const { processData } = await import("./utils/data-processor")
+
+      const data = await processData(c.req.query())
+      const pdf = await generatePDF(data)
+
+      return c.json({ pdf })
+    })
+})
+```

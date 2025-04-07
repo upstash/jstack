@@ -13,19 +13,18 @@
     "@tanstack/react-query": "^5.51.23",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.39.0",
-    "hono": "^4.6.19",
-    "jstack": "^1.0.6",
+    "hono": "^4.7.0",
+    "jstack": "^1.0.8",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.2",
-    "wrangler": "^3.72.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
-    "@cloudflare/workers-types": "^4.20240815.0",
+    "@cloudflare/workers-types": "^4.20250214.0",
     "@types/node": "^22.10.6",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
@@ -34,6 +33,7 @@
     "eslint-config-next": "^15.1.4",
     "postcss": "^8",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.0.0"
   }
 }
