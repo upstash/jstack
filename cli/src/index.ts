@@ -16,9 +16,9 @@ const main = async () => {
     return
   }
 
-  const { projectName, orm, dialect, provider } = results
+  const { projectName, orm, dialect, provider, auth } = results
 
-  const installers = buildInstallerMap(orm, provider)
+  const installers = buildInstallerMap(orm, provider, auth)
 
   const projectDir = await scaffoldProject({
     orm,
@@ -26,6 +26,7 @@ const main = async () => {
     databaseProvider: provider ?? "neon",
     installers,
     projectName,
+    auth
   })
 
   const pkgJson = fs.readJSONSync(path.join(projectDir, "package.json"))

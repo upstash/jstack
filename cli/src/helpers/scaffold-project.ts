@@ -1,4 +1,4 @@
-import { Dialect, Orm } from "@/cli/index.js"
+import { Dialect, Orm, Auth } from "@/cli/index.js"
 import { buildInstallerMap, InstallerMap, Provider } from "@/installers/index.js"
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager.js"
 import path from "path"
@@ -11,9 +11,10 @@ interface ScaffoldProjectOptions {
   dialect: Dialect
   installers: InstallerMap
   databaseProvider: Provider
+  auth: Auth
 }
 
-export const scaffoldProject = async ({ databaseProvider, projectName, installers, orm }: ScaffoldProjectOptions) => {
+export const scaffoldProject = async ({ databaseProvider, projectName, installers, orm, auth }: ScaffoldProjectOptions) => {
   const projectDir = path.resolve(process.cwd(), projectName)
   const pkgManager = getUserPkgManager()
 
