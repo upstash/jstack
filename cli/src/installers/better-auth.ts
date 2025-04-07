@@ -30,6 +30,18 @@ export const betterAuthInstaller: Installer = ({ projectDir, databaseProvider })
   const schemaSrc = path.join(extrasDir, `src/server/db/schema/with-postgres-auth.ts`)
   const schemaDest = path.join(projectDir, `src/server/db/schema.ts`)
 
+  // auth page
+  const pageSrc = path.join(extrasDir, `src/app/with-better-auth-page.tsx`)
+  const pageDest = path.join(projectDir, `src/app/page.tsx`)
+
+  // auth components
+  const componentsSrc = path.join(extrasDir, `src/app/with-better-auth-form.tsx`)
+  const componentsDest = path.join(projectDir, `src/app/components/signup.tsx`)
+
+  // db instance  
+  const dbSrc = path.join(extrasDir, `src/server/db/drizzle-pg-index.ts`)
+  const dbDest = path.join(projectDir, `src/server/db/index.ts`)
+
   const envSrc = path.join(extrasDir, `config/_env-drizzle-better-auth`)
   const envDest = path.join(projectDir, ".env")
 
@@ -37,5 +49,8 @@ export const betterAuthInstaller: Installer = ({ projectDir, databaseProvider })
   fs.copySync(clientSrc, clientDest)
   fs.copySync(libSrc, libDest)
   fs.copySync(envSrc, envDest)
+  fs.copySync(componentsSrc, componentsDest)
+  fs.copySync(pageSrc, pageDest)
+  fs.copySync(dbSrc, dbDest)
   fs.copySync(schemaSrc, schemaDest)
 }
