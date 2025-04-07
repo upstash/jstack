@@ -1,31 +1,23 @@
-import { Hono, Schema } from "hono"
-import { Router, RouterSchema } from "./router"
-
-type PrefixPaths<S extends Schema, Prefix extends string> = {
-  [K in keyof S as `${Prefix}/${K & string}`]: S[K]
-} extends infer O
-  ? { [K in keyof O]: O[K] }
-  : never
+import { Hono } from "hono"
+import { Router } from "./router"
 
 export type InferSchemaFromRouters<
-  T extends Record<string, Hono<any, any, any> | (() => Promise<Router<any>>)>,
+  R extends Record<string, Router<any> | (() => Promise<Router<any>>)>,
 > = {
-  [K in keyof T]: T[K] extends Hono<any, infer S>
-    ? PrefixPaths<S, K & string>
-    : T[K] extends () => Promise<Router<infer P>>
-      ? PrefixPaths<RouterSchema<P>, K & string>
+  [P in keyof R]: R[P] extends () => Promise<Router<any>>
+    ? R[P] extends () => Promise<infer T>
+      ? T extends Hono<any, infer S>
+        ? { [Q in keyof S]: S[Q] }
+        : never
       : never
-}[keyof T]
-
-// export type ResolvedRouter<
-//   T extends Record<string, Hono<any, any, any> | (() => Promise<Router<any>>)>,
-// > = Router<InferSchemaFromRouters<T>> & {
-//   __resolvedType?: InferSchemaFromRouters<T>
-// }
+    : R[P] extends Hono<any, infer S>
+      ? { [Q in keyof S]: S[Q] }
+      : never
+}
 
 export function mergeRouters<
-  R extends Record<string, Hono<any, any, any> | (() => Promise<Router<any>>)>,
->(api: Hono<any, any, any>, routers: R): Router<InferSchemaFromRouters<R>>  {
+  R extends Record<string, Router<any> | (() => Promise<Router<any>>)>,
+>(api: Hono<any, any, any>, routers: R): Router<InferSchemaFromRouters<R>> {
   const mergedRouter = new Router()
   Object.assign(mergedRouter, api)
 

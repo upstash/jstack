@@ -1,13 +1,13 @@
-import { Env, MiddlewareHandler } from "hono/types"
+import { Env } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
 import { z, ZodTypeAny } from "zod"
 import { IO } from "./io"
 import {
   ContextWithSuperJSON,
+  GetOperation,
   MiddlewareFunction,
   PostOperation,
-  GetOperation,
   ResponseType,
   WebSocketHandler,
   WebSocketOperation,

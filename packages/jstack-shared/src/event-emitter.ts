@@ -30,7 +30,6 @@ export class EventEmitter {
     }
 
     if (this.outgoingSchema) {
-      console.log('there is outgoing schema');
       try {
         this.outgoingSchema.parse(data)
       } catch (err) {

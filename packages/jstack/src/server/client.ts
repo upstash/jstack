@@ -6,8 +6,9 @@ import { ContentfulStatusCode } from "hono/utils/http-status"
 import { UnionToIntersection } from "hono/utils/types"
 import { ClientSocket, SystemEvents } from "jstack-shared"
 import superjson from "superjson"
-import { Router, RouterSchema } from "./router"
-import { InferSchemaFromRouters } from './merge-routers'
+import { MergeRoutes, OperationSchema, Router, RouterSchema } from "./router"
+import { InferSchemaFromRouters } from "./merge-routers"
+import { GetOperation, PostOperation } from "./types"
 
 type ClientResponseOfEndpoint<T extends Endpoint = Endpoint> = T extends {
   output: infer O
@@ -21,7 +22,7 @@ type ClientResponseOfEndpoint<T extends Endpoint = Endpoint> = T extends {
     >
   : never
 
-type ClientRequest<S extends Schema> = {
+export type ClientRequest<S extends Schema> = {
   [M in keyof S]: S[M] extends Endpoint & { input: infer R }
     ? undefined extends R
       ? (
@@ -57,63 +58,73 @@ type ClientRequest<S extends Schema> = {
       : {}
     : {})
 
-type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never
+export type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never
 
-type IsMergedRouter<T> = keyof T & 'a' extends 'b' ? true : false
+export type InferRouter<T extends Router<any, any>> =
+  T extends Router<infer P, any> ? RouterSchema<P> : never
 
-type InferRouter<T> = T extends Router<InferSchemaFromRouters<infer S>> 
-    ? IsMergedRouter<S> extends true
-      ? S
-      : T extends Router<infer S>
-        ? S
-        : never
-    : never
-
-type GetPathRequest<T, K, K2> = T extends Record<string, any>
-    ? ClientRequest<T[`${K & string}/${K2 & string}`]>
-    : never
-
-type Client<T extends Hono<any, any, any> | Router<any, any>> = {
-    [K in keyof InferRouter<T>]: {
-        [K2 in keyof InferRouter<InferRouter<T>[K]>]: T extends Hono<any, infer S>
-            ? GetPathRequest<UnionToIntersection<UnwrapRouterSchema<S>>, K, K2>
-            : never
-    }
-}
-
-type OperationIO<
-  T extends Hono<any, any, any> | Router<any, any>,
-  IOType extends "input" | "output",
-> =
+export type Client<T extends Router<any, any> | (() => Promise<Router<any>>)> =
   T extends Hono<any, infer S>
-    ? S extends Record<infer K, Schema>
-      ? K extends `${infer P}/${infer R}`
-        ? {
-            [Key in P]: {
-              [SubKey in R]: UnwrapRouterSchema<S>[`${P}/${R}`] extends infer Operation
-                ? Operation extends { $get: { [key in IOType]: any } }
-                  ? Operation["$get"][IOType]
-                  : Operation extends { $post: { [key in IOType]: any } }
-                    ? Operation["$post"][IOType]
-                    : never
-                : never
+    ? S extends RouterSchema<infer B>
+      ? B extends MergeRoutes<infer C>
+        ? C extends InferSchemaFromRouters<infer D>
+          ? {
+              [K1 in keyof D]: D[K1] extends () => Promise<Router<infer P, any>>
+                ? { [K2 in keyof P]: ClientRequest<OperationSchema<P[K2]>> }
+                : D[K1] extends Router<infer P, any>
+                  ? { [K2 in keyof P]: ClientRequest<OperationSchema<P[K2]>> }
+                  : never
             }
-          }
+          : never
         : never
       : never
     : never
 
-export type InferRouterInputs<T extends Hono<any, any, any> | Router<any>> =
-  UnionToIntersection<OperationIO<T, "input">>
-export type InferRouterOutputs<T extends Hono<any, any, any> | Router<any>> =
-  UnionToIntersection<OperationIO<T, "output">>
+type OperationIO<
+  T extends Router<any, any> | (() => Promise<Router<any, any>>),
+  IOType extends "input" | "output",
+> =
+  T extends Hono<any, infer S>
+    ? S extends RouterSchema<infer B>
+      ? B extends MergeRoutes<infer C>
+        ? C extends InferSchemaFromRouters<infer D>
+          ? {
+              [K1 in keyof D]: D[K1] extends
+                | Router<infer P, any>
+                | (() => Promise<Router<infer P, any>>)
+                ? {
+                    [K2 in keyof P]: P[K2] extends infer Operation
+                      ? Operation extends PostOperation<any>
+                        ? OperationSchema<Operation> extends {
+                            $post: { [key in IOType]: any }
+                          }
+                          ? OperationSchema<Operation>["$post"][IOType]
+                          : never
+                        : Operation extends GetOperation<any>
+                          ? OperationSchema<Operation> extends {
+                              $get: { [key in IOType]: any }
+                            }
+                            ? OperationSchema<Operation>["$get"][IOType]
+                            : never
+                          : Operation
+                      : never
+                  }
+                : never
+            }
+          : never
+        : never
+      : never
+    : never
+
+export type InferRouterOutputs<T extends Router<any>> = OperationIO<T, "output">
+export type InferRouterInputs<T extends Router<any>> = OperationIO<T, "input">
 
 export interface ClientConfig extends ClientRequestOptions {
   baseUrl: string
   credentials?: RequestCredentials
 }
 
-export const createClient = <T extends Hono<any, any, any> | Router<any>>(
+export const createClient = <T extends Router<any>>(
   options?: ClientConfig,
 ): UnionToIntersection<Client<T>> => {
   const {
