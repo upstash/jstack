@@ -19,13 +19,4 @@ export default defineConfig([
     minify: false,
     external: ["zod"],
   },
-  {
-    entry: ["src/cli/index.ts"],
-    outDir: "dist/cli",
-    format: ["cjs"],
-    external: ["esbuild", "events", "child_process", "fs", "path", "util"],
-    dts: false,
-    clean: false,
-    minify: false,
-  },
 ])
