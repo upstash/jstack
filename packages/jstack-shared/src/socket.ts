@@ -1,4 +1,3 @@
-import { Redis } from "@upstash/redis/cloudflare"
 import { z } from "zod"
 import { EventEmitter } from "./event-emitter"
 import { logger } from "./logger"
@@ -21,7 +20,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
   private controllers: Map<string, AbortController> = new Map()
   private emitter: EventEmitter
 
-  private redis: Redis
+  // private redis: Redis
   private redisUrl: string
   private redisToken: string
   private lastPingTimes: Map<string, number> = new Map()
@@ -38,10 +37,10 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 
     this.redisUrl = redisUrl
     this.redisToken = redisToken
-    this.redis = new Redis({
-      url: redisUrl,
-      token: redisToken,
-    })
+    // this.redis = new Redis({
+    //   url: redisUrl,
+    //   token: redisToken,
+    // })
 
     this.ws = ws
     this.emitter = new EventEmitter(ws, { incomingSchema, outgoingSchema })
@@ -110,7 +109,15 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
   private createHeartbeat(room: string) {
     const heartbeat = {
       sender: setInterval(async () => {
-        await this.redis.publish(room, ["ping", null])
+        
+        await fetch(`${this.redisUrl}/publish/${room}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.redisToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(["ping", null])
+        })
       }, 30000),
 
       monitor: setInterval(() => {
