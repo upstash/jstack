@@ -29,6 +29,11 @@ export const postgresInstaller: Installer = ({ projectDir }) => {
   fs.ensureDirSync(path.dirname(schemaDest))
   fs.ensureDirSync(path.dirname(jstackDest))
 
+  // postgres db instance
+  const dbSrc = path.join(extrasDir, `src/server/db/index-postgres.ts`)
+  const dbDest = path.join(projectDir, `src/server/db/index.ts`)
+
+  fs.copySync(dbSrc, dbDest)
   fs.copySync(configFile, configDest)
   fs.copySync(schemaSrc, schemaDest)
   fs.copySync(jstackSrc, jstackDest)

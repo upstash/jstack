@@ -7,11 +7,13 @@ export interface CliResults {
   orm: "none" | "drizzle" | undefined
   dialect?: "postgres" | undefined
   provider?: "neon" | "postgres" | "vercel-postgres" | "planetscale" | undefined
+  auth: "better-auth" | "none"
   noInstall?: boolean
 }
 
 export type Dialect = CliResults["dialect"]
 export type Orm = CliResults["orm"]
+export type Auth = CliResults["auth"]
 
 export async function runCli(): Promise<CliResults | undefined> {
   console.clear()
@@ -55,6 +57,8 @@ export async function runCli(): Promise<CliResults | undefined> {
 
   let dialect = undefined
   let provider = undefined
+  let auth: "better-auth" | "none" = "none"
+
   if (orm === "drizzle") {
     dialect = "postgres" as const // Only offering postgres
 
@@ -71,6 +75,22 @@ export async function runCli(): Promise<CliResults | undefined> {
       outro("Setup cancelled.")
       return undefined
     }
+
+    // Only show auth option when using Drizzle ORM
+    const authResult = await select<"better-auth" | "none">({
+      message: "Which authentication system would you like to use?",
+      options: [
+        { value: "better-auth", label: "Better Auth" },
+        { value: "none", label: "None" },
+      ],
+    })
+    
+    if (isCancel(authResult)) {
+      outro("Setup cancelled.")
+      return undefined
+    }
+
+    auth = authResult
   }
 
   let noInstall = noInstallFlag
@@ -97,6 +117,7 @@ export async function runCli(): Promise<CliResults | undefined> {
     orm,
     dialect,
     provider,
+    auth,
     noInstall,
   }
 }

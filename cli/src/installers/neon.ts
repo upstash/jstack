@@ -20,6 +20,10 @@ export const neonInstaller: Installer = ({ projectDir }) => {
   const schemaSrc = path.join(extrasDir, "src/server/db/schema", `with-postgres.ts`)
   const schemaDest = path.join(projectDir, "src/server/db/schema.ts")
 
+  // neon db instance
+  const dbSrc = path.join(extrasDir, `src/server/db/index-neon.ts`)
+  const dbDest = path.join(projectDir, `src/server/db/index.ts`)
+
   const jstackSrc = path.join(extrasDir, "src/server/jstack", `drizzle-with-neon.ts`)
   const jstackDest = path.join(projectDir, "src/server/jstack.ts")
 
@@ -27,6 +31,7 @@ export const neonInstaller: Installer = ({ projectDir }) => {
   fs.ensureDirSync(path.dirname(schemaDest))
   fs.ensureDirSync(path.dirname(jstackDest))
 
+  fs.copySync(dbSrc, dbDest)
   fs.copySync(configFile, configDest)
   fs.copySync(schemaSrc, schemaDest)
   fs.copySync(jstackSrc, jstackDest)

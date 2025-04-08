@@ -9,6 +9,9 @@ export const dependencyVersionMap = {
   // vercel postgres
   "@vercel/postgres": "^0.10.0",
 
+  // better auth
+  "better-auth": "^1.2.5",
+  
   // Drizzle
   "drizzle-kit": "^0.30.1",
   "drizzle-orm": "^0.39.0",

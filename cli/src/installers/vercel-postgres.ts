@@ -23,11 +23,17 @@ export const vercelPostgresInstaller: Installer = ({ projectDir }) => {
   const jstackSrc = path.join(extrasDir, "src/server/jstack", `drizzle-with-vercel-postgres.ts`)
   const jstackDest = path.join(projectDir, "src/server/jstack.ts")
 
+  // db instance for vercel
+  const dbSrc = path.join(extrasDir, `src/server/db/index-vercel.ts`)
+  const dbDest = path.join(projectDir, `src/server/db/index.ts`)
+
   fs.ensureDirSync(path.dirname(configDest))
   fs.ensureDirSync(path.dirname(schemaDest))
   fs.ensureDirSync(path.dirname(jstackDest))
+  fs.ensureDirSync(path.dirname(dbDest))
 
   fs.copySync(configFile, configDest)
   fs.copySync(schemaSrc, schemaDest)
   fs.copySync(jstackSrc, jstackDest)
+  fs.copySync(dbSrc, dbDest)
 }
