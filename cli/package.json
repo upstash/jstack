@@ -1,6 +1,6 @@
 {
   "name": "create-jstack-app",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "CLI tool to create a new JStack application",
   "main": "dist/index.js",
   "type": "module",
@@ -28,7 +28,7 @@
     "execa": "^9.5.2",
     "fs-extra": "^11.2.0",
     "hono": "^4.7.0",
-    "jstack": "^1.1.0",
+    "jstack": "^1.1.1",
     "ora": "^8.1.1",
     "sort-package-json": "^2.11.0",
     "tsup": "^8.3.5"
