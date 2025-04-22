@@ -37,12 +37,18 @@ export const stargazersRouter = j.router({
       ""
     const body = await c.req.raw.text().catch(() => "{}")
 
-    // throws if invalid, handled and logged by appRouter-level .onError
-    await receiver.verify({
-      body,
-      signature,
-      url: ROUTER_URL,
-    })
+    try {
+      await receiver.verify({
+        body,
+        signature,
+        url: ROUTER_URL,
+      })
+    } catch (err) {
+      return c.json(
+        { success: false, message: "Invalid request signature" },
+        401,
+      )
+    }
 
     const { stargazers, stargazerCount } = await fetchStargazers({
       GITHUB_TOKEN,
