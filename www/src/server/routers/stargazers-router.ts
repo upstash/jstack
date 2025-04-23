@@ -15,8 +15,8 @@ export const stargazersRouter = j.router({
    *
    * @internal This endpoint is meant to be called by QStash scheduler only
    */
-  prefetch: publicProcedure.post(async ({ c, ctx, input }) => {
-    const { redis, qstash } = ctx
+  prefetch: publicProcedure.post(async ({ c, ctx }) => {
+    const { redis } = ctx
     const {
       AMPLIFY_URL,
       QSTASH_CURRENT_SIGNING_KEY,
@@ -55,7 +55,6 @@ export const stargazersRouter = j.router({
     })
 
     await redis.set("stargazer-info", { stargazerCount, stargazers })
-    await qstash.publishJSON({ url: ROUTER_URL, delay: "10s" })
 
     return c.json({ success: true })
   }),
