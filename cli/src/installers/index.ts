@@ -5,6 +5,7 @@ import { noOrmInstaller } from "./no-orm.js"
 import { postgresInstaller } from "./postgres.js"
 import { vercelPostgresInstaller } from "./vercel-postgres.js"
 import { planetscaleInstaller } from "./planetscale.js"
+import { betterAuthInstaller } from "./better-auth.js"
 
 // Turning this into a const allows the list to be iterated over for programmatically creating prompt options
 // Should increase extensibility in the future
@@ -30,6 +31,16 @@ export type InstallerMap = {
       installer: Installer
     }
   }
+  auth: {
+    "better-auth": {
+      inUse: boolean
+      installer: Installer
+    }
+    none: {
+      inUse: boolean
+      installer: Installer
+    }
+  }
 }
 
 export interface InstallerOptions {
@@ -46,8 +57,19 @@ export type Installer = (opts: InstallerOptions) => void
 
 export const buildInstallerMap = (
   selectedOrm: Orm = "none",
-  selectedProvider?: Provider
+  selectedProvider?: Provider,
+  selectedAuth: "better-auth" | "none" = "none"
 ): InstallerMap => ({
+  auth: {
+    "better-auth": {
+      inUse: selectedOrm === "drizzle" && selectedAuth === "better-auth",
+      installer: betterAuthInstaller,
+    },
+    none: {
+      inUse: selectedOrm === "none" || selectedAuth === "none",
+      installer: () => {},
+    },
+  },
   orm: {
     none: {
       inUse: selectedOrm === "none",

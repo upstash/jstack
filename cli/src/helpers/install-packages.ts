@@ -29,5 +29,14 @@ export const installPackages = (options: InstallPackagesOptions) => {
     }
   }
 
+  // Handle auth installers
+  for (const [name, pkgOpts] of Object.entries(installers.auth)) {
+    if (pkgOpts.inUse) {
+      const spinner = ora(`Boilerplating auth: ${name}...`).start()
+      pkgOpts.installer(options)
+      spinner.succeed(chalk.green(`Successfully setup boilerplate for auth: ${chalk.green.bold(name)}`))
+    }
+  }
+
   logger.info("")
 }
