@@ -1,5 +1,5 @@
 {
-  "name": "jstack",
+  "name": "jstack-root",
   "version": "0.0.0",
   "description": "The stack for building seriously fast, lightweight and end-to-end typesafe Next.js apps.",
   "author": "Josh tried coding",
@@ -15,5 +15,12 @@
   "keywords": ["jstack", "next.js", "typescript", "hono"],
   "dependencies": {
     "prettier": "^3.4.2"
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "app",
+    "cli",
+    "www"
+  ],
+  "packageManager": "bun@1.2.14"
 }
