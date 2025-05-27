@@ -1,7 +1,6 @@
 import { Env } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
-import { type ZodAny } from "zod/v4"
 import { IO } from "./io"
 import {
   ContextWithSuperJSON,
@@ -12,7 +11,10 @@ import {
   WebSocketHandler,
   WebSocketOperation,
   type InferZodType,
+  type ZodAny,
 } from "./types"
+import type { ZodType as ZodV3Type } from "zod"
+import type { ZodType as ZodV4Type } from "zod/v4"
 
 type OptionalPromise<T> = T | Promise<T>
 
@@ -210,7 +212,10 @@ export class Procedure<
   ): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
     return {
       type: "get",
-      schema: this.inputSchema,
+      schema: this.inputSchema as
+        | ZodV3Type<InputSchema>
+        | ZodV4Type<InputSchema>
+        | void,
       handler: handler as any,
       middlewares: this.middlewares,
     }
@@ -243,7 +248,10 @@ export class Procedure<
   ): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
     return {
       type: "post",
-      schema: this.inputSchema,
+      schema: this.inputSchema as
+        | ZodV3Type<InputSchema>
+        | ZodV4Type<InputSchema>
+        | void,
       handler: handler as any,
       middlewares: this.middlewares,
     }
