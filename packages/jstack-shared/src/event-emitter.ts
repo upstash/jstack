@@ -1,7 +1,9 @@
-import { z } from "zod"
+import { ZodError as ZodV3Error, ZodTypeAny } from "zod"
+import { ZodError as ZodV4Error, ZodType } from "zod/v4"
 import { logger } from "./logger"
 
-type Schema = z.ZodTypeAny | undefined
+type Schema = ZodTypeAny | ZodType | undefined
+type ZodError = ZodV3Error | ZodV4Error
 
 interface SchemaConfig {
   incomingSchema: Schema
@@ -43,9 +45,9 @@ export class EventEmitter {
   }
 
   handleSchemaMismatch(event: string, data: any, err: any) {
-    if (err instanceof z.ZodError) {
+    if (err instanceof ZodV3Error || err instanceof ZodV4Error) {
       logger.error(`Invalid outgoing event data for "${event}":`, {
-        errors: err.errors
+        errors: err.issues
           .map((e) => `${e.path.join(".")}: ${e.message}`)
           .join(", "),
         data: JSON.stringify(data, null, 2),
@@ -60,7 +62,7 @@ export class EventEmitter {
 
     if (!handlers?.length) {
       logger.warn(
-        `No handlers registered for event "${eventName}". Did you forget to call .on("${eventName}", handler)?`
+        `No handlers registered for event "${eventName}". Did you forget to call .on("${eventName}", handler)?`,
       )
       return
     }
@@ -70,9 +72,9 @@ export class EventEmitter {
       try {
         validatedData = this.incomingSchema.parse(data)
       } catch (err) {
-        if (err instanceof z.ZodError) {
+        if (err instanceof ZodV3Error || err instanceof ZodV4Error) {
           logger.error(`Invalid incoming event data for "${eventName}":`, {
-            errors: err.errors
+            errors: err.issues
               .map((e) => `${e.path.join(".")}: ${e.message}`)
               .join(", "),
             data: JSON.stringify(data, null, 2),
@@ -97,14 +99,14 @@ export class EventEmitter {
             error: error.message,
             stack: error.stack,
             data: JSON.stringify(validatedData, null, 2),
-          }
+          },
         )
       }
     })
 
     if (hasErrors) {
       throw new Error(
-        `One or more handlers failed for event "${eventName}". Check logs for details.`
+        `One or more handlers failed for event "${eventName}". Check logs for details.`,
       )
     }
   }
@@ -129,7 +131,7 @@ export class EventEmitter {
   on(event: string, callback?: (data: any) => any): void {
     if (!callback) {
       logger.error(
-        `No callback provided for event handler "${event.toString()}". Ppass a callback to handle this event.`
+        `No callback provided for event handler "${event.toString()}". Ppass a callback to handle this event.`,
       )
 
       return

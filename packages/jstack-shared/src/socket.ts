@@ -1,12 +1,13 @@
-import { z } from "zod"
+import { ZodSchema } from "zod"
+import { ZodType, z } from "zod/v4"
 import { EventEmitter } from "./event-emitter"
 import { logger } from "./logger"
 
 interface ServerSocketOptions {
   redisUrl: string
   redisToken: string
-  incomingSchema: z.ZodSchema
-  outgoingSchema: z.ZodSchema
+  incomingSchema: ZodSchema | ZodType
+  outgoingSchema: ZodSchema | ZodType
 }
 
 export interface SystemEvents {
@@ -67,15 +68,24 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
     this.heartbeatTimers.clear()
   }
 
-  off<K extends keyof IncomingEvents & SystemEvents>(event: K, callback?: (data: IncomingEvents[K]) => any): void {
+  off<K extends keyof IncomingEvents & SystemEvents>(
+    event: K,
+    callback?: (data: IncomingEvents[K]) => any,
+  ): void {
     return this.emitter.off(event as string, callback)
   }
 
-  on<K extends keyof IncomingEvents>(event: K, callback?: (data: IncomingEvents[K]) => any): void {
+  on<K extends keyof IncomingEvents>(
+    event: K,
+    callback?: (data: IncomingEvents[K]) => any,
+  ): void {
     return this.emitter.on(event as string, callback)
   }
 
-  emit<K extends keyof OutgoingEvents>(event: K, data: OutgoingEvents[K]): boolean {
+  emit<K extends keyof OutgoingEvents>(
+    event: K,
+    data: OutgoingEvents[K],
+  ): boolean {
     return this.emitter.emit(event as string, data)
   }
 
@@ -102,21 +112,22 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
       this.controllers.delete(room)
       logger.info(`Left room: ${room}`)
     } else {
-      logger.warn(`Attempted to leave room "${room}" but no active controller found`)
+      logger.warn(
+        `Attempted to leave room "${room}" but no active controller found`,
+      )
     }
   }
 
   private createHeartbeat(room: string) {
     const heartbeat = {
       sender: setInterval(async () => {
-        
         await fetch(`${this.redisUrl}/publish/${room}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${this.redisToken}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${this.redisToken}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(["ping", null])
+          body: JSON.stringify(["ping", null]),
         })
       }, 30000),
 
@@ -228,7 +239,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
   }
 }
 
-type Schema = z.ZodSchema | undefined
+type Schema = ZodSchema | ZodType | undefined
 
 export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
   private ws!: WebSocket
@@ -246,7 +257,10 @@ export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
 
   constructor(
     url: string | URL,
-    { incomingSchema, outgoingSchema }: { incomingSchema?: Schema; outgoingSchema?: Schema } = {}
+    {
+      incomingSchema,
+      outgoingSchema,
+    }: { incomingSchema?: Schema; outgoingSchema?: Schema } = {},
   ) {
     this.url = url
     this.incomingSchema = incomingSchema
@@ -282,7 +296,10 @@ export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
 
     const existingHandlers = this.emitter?.eventHandlers
 
-    this.emitter = new EventEmitter(ws, { incomingSchema: this.incomingSchema, outgoingSchema: this.outgoingSchema })
+    this.emitter = new EventEmitter(ws, {
+      incomingSchema: this.incomingSchema,
+      outgoingSchema: this.outgoingSchema,
+    })
 
     if (existingHandlers) {
       this.emitter.eventHandlers = new Map(existingHandlers)
@@ -331,7 +348,7 @@ Fix this issue: https://jstack.app/docs/getting-started/local-development
         setTimeout(() => this.connect(), 1500)
       } else {
         logger.error(
-          "Failed to establish connection after multiple attempts. Check your network connection, or refresh the page to try again."
+          "Failed to establish connection after multiple attempts. Check your network connection, or refresh the page to try again.",
         )
       }
     }
@@ -353,15 +370,24 @@ Fix this issue: https://jstack.app/docs/getting-started/local-development
     }
   }
 
-  emit<K extends keyof OutgoingEvents>(event: K, data: OutgoingEvents[K]): boolean {
+  emit<K extends keyof OutgoingEvents>(
+    event: K,
+    data: OutgoingEvents[K],
+  ): boolean {
     return this.emitter.emit(event as string, data)
   }
 
-  off<K extends keyof IncomingEvents & SystemEvents>(event: K, callback?: (data: IncomingEvents[K]) => any): void {
+  off<K extends keyof IncomingEvents & SystemEvents>(
+    event: K,
+    callback?: (data: IncomingEvents[K]) => any,
+  ): void {
     return this.emitter.off(event as string, callback)
   }
 
-  on<K extends keyof IncomingEvents>(event: K, callback?: (data: IncomingEvents[K]) => any): void {
+  on<K extends keyof IncomingEvents>(
+    event: K,
+    callback?: (data: IncomingEvents[K]) => any,
+  ): void {
     return this.emitter.on(event as string, callback)
   }
 }

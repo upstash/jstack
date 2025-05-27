@@ -1,7 +1,8 @@
 import { Env } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
-import { z, ZodTypeAny } from "zod"
+import type { ZodType as ZodV3Type } from "zod"
+import type { ZodType as ZodV4Type } from "zod/v4"
 import { IO } from "./io"
 import {
   ContextWithSuperJSON,
@@ -11,19 +12,18 @@ import {
   ResponseType,
   WebSocketHandler,
   WebSocketOperation,
+  type InferZodType,
+  type ZodAny,
 } from "./types"
 
 type OptionalPromise<T> = T | Promise<T>
-type InferIncomingData<Events> = Events extends ZodTypeAny
-  ? z.infer<Events>
-  : void
 
 export class Procedure<
   E extends Env = any,
   Ctx = {},
-  InputSchema extends ZodTypeAny | void = void,
-  Incoming extends ZodTypeAny | void = void,
-  Outgoing extends ZodTypeAny | void = void,
+  InputSchema extends ZodAny | void = void,
+  Incoming extends ZodAny | void = void,
+  Outgoing extends ZodAny | void = void,
 > {
   private readonly middlewares: MiddlewareFunction<Ctx, void, E>[] = []
   private readonly inputSchema?: InputSchema
@@ -91,7 +91,7 @@ export class Procedure<
    * })
    * ```
    */
-  incoming<Schema extends z.ZodTypeAny>(schema: Schema) {
+  incoming<Schema extends ZodAny>(schema: Schema) {
     return new Procedure<E, Ctx, InputSchema, Schema, Outgoing>(
       this.middlewares,
       this.inputSchema,
@@ -130,7 +130,7 @@ export class Procedure<
    * })
    * ```
    */
-  outgoing<Schema extends z.ZodTypeAny>(schema: Schema) {
+  outgoing<Schema extends ZodAny>(schema: Schema) {
     return new Procedure<E, Ctx, InputSchema, Incoming, Schema>(
       this.middlewares,
       this.inputSchema,
@@ -141,10 +141,10 @@ export class Procedure<
 
   /**
    * Validates input parameters using a Zod schema.
-   * 
+   *
    * @see https://jstack.app/docs/backend/procedures#input-validation
    * @param schema - A Zod schema to validate input parameters
-   * 
+   *
    * @example
    * ```ts
    * const router = j.router({
@@ -156,7 +156,7 @@ export class Procedure<
    * })
    * ```
    */
-  input<Schema extends z.ZodTypeAny>(schema: Schema) {
+  input<Schema extends ZodAny>(schema: Schema) {
     return new Procedure<E, Ctx, Schema, Incoming, Outgoing>(
       this.middlewares,
       schema,
@@ -167,10 +167,10 @@ export class Procedure<
 
   /**
    * Adds a middleware function to the procedure chain.
-   * 
+   *
    * @see https://jstack.app/docs/backend/middleware
    * @param handler - A middleware function that can modify the context
-   * 
+   *
    * @example
    * ```ts
    * // Create a middleware that adds user data to context
@@ -178,7 +178,7 @@ export class Procedure<
    *   const user = await getUser()
    *   return await next({ user }) // Adds user to ctx
    * })
-   * 
+   *
    * const router = j.router({
    *   profile: publicProcedure
    *     .use(withUser) // Apply middleware
@@ -207,12 +207,15 @@ export class Procedure<
     }: {
       ctx: Ctx
       c: ContextWithSuperJSON<E>
-      input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
+      input: InferZodType<InputSchema>
     }) => Return,
   ): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
     return {
       type: "get",
-      schema: this.inputSchema,
+      schema: this.inputSchema as
+        | ZodV3Type<InputSchema>
+        | ZodV4Type<InputSchema>
+        | void,
       handler: handler as any,
       middlewares: this.middlewares,
     }
@@ -226,7 +229,7 @@ export class Procedure<
     }: {
       ctx: Ctx
       c: ContextWithSuperJSON<E>
-      input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
+      input: InferZodType<InputSchema>
     }) => Return,
   ): GetOperation<InputSchema, Return, E> {
     return this.get(handler)
@@ -240,12 +243,15 @@ export class Procedure<
     }: {
       ctx: Ctx
       c: ContextWithSuperJSON<E>
-      input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
+      input: InferZodType<InputSchema>
     }) => Return,
   ): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
     return {
       type: "post",
-      schema: this.inputSchema,
+      schema: this.inputSchema as
+        | ZodV3Type<InputSchema>
+        | ZodV4Type<InputSchema>
+        | void,
       handler: handler as any,
       middlewares: this.middlewares,
     }
@@ -259,7 +265,7 @@ export class Procedure<
     }: {
       ctx: Ctx
       c: ContextWithSuperJSON<E>
-      input: InputSchema extends ZodTypeAny ? z.infer<InputSchema> : void
+      input: InferZodType<InputSchema>
     }) => Return,
   ): PostOperation<InputSchema, Return, E> {
     return this.post(handler)
@@ -271,17 +277,13 @@ export class Procedure<
       c,
       ctx,
     }: {
-      io: IO<InferIncomingData<Incoming>, InferIncomingData<Outgoing>>
+      io: IO<InferZodType<Incoming>, InferZodType<Outgoing>>
       c: ContextWithSuperJSON<E>
       ctx: Ctx
     }) => OptionalPromise<
-      WebSocketHandler<InferIncomingData<Incoming>, InferIncomingData<Outgoing>>
+      WebSocketHandler<InferZodType<Incoming>, InferZodType<Outgoing>>
     >,
-  ): WebSocketOperation<
-    InferIncomingData<Incoming>,
-    InferIncomingData<Outgoing>,
-    E
-  > {
+  ): WebSocketOperation<InferZodType<Incoming>, InferZodType<Outgoing>, E> {
     return {
       type: "ws",
       outputFormat: "ws",
