@@ -152,10 +152,12 @@ export type OperationType<
 export type InferInput<T> =
   T extends OperationType<infer I, any> ? InferZodType<I, I> : void
 
-export type InferZodType<S, T = void> = S extends zV3.ZodTypeAny
-  ? zV3.infer<S>
-  : S extends zV4.ZodType
-    ? zV4.infer<S>
-    : T
+export type InferZodType<S, T = void> = S extends void
+  ? T
+  : S extends zV3.ZodTypeAny
+    ? zV3.infer<S>
+    : S extends zV4.ZodType
+      ? zV4.infer<S>
+      : T
 
 export type ZodAny = zV3.ZodTypeAny | zV4.ZodType

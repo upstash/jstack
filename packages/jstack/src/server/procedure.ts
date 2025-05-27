@@ -1,8 +1,7 @@
 import { Env } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
-import { z as zV3, ZodTypeAny } from "zod"
-import { z as zV4, ZodType, type ZodAny } from "zod/v4"
+import { type ZodAny } from "zod/v4"
 import { IO } from "./io"
 import {
   ContextWithSuperJSON,

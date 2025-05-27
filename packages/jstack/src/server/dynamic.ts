@@ -2,15 +2,15 @@ import { Router } from "./router"
 
 /**
  * Dynamically imports routers to enable code splitting. Improves performance and reduces cold starts.
- * 
+ *
  * @see https://jstack.app/docs/backend/performance
- * 
+ *
  * @param importFn - Function that imports a router
  * @throws {Error} If module has no exports, multiple exports, or invalid Router
- * 
+ *
  * @example
  * import { dynamic } from "jstack"
- * 
+ *
  * const appRouter = j.mergeRouters(api, {
  *   router: dynamic(() => import("./routers/my-router")),
  * })
@@ -31,7 +31,7 @@ export const dynamic = <T extends Router>(
     if (routers.length > 1) {
       throw new Error(
         `Error dynamically loading router: Multiple Router exports detected in module (${Object.keys(module).join(", ")}). ` +
-          "Please export only one Router instance per module."
+          "Please export only one Router instance per module.",
       )
     }
 

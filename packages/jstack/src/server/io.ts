@@ -13,15 +13,18 @@ export class IO<IncomingEvents, OutgoingEvents> {
   /**
    * Sends to all connected clients (broadcast)
    */
-  async emit<K extends keyof OutgoingEvents>(event: K, data: OutgoingEvents[K]) {
+  async emit<K extends keyof OutgoingEvents>(
+    event: K,
+    data: OutgoingEvents[K],
+  ) {
     if (this.targetRoom) {
       await fetch(`${this.redisUrl}/publish/${this.targetRoom}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.redisToken}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${this.redisToken}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify([event, data])
+        body: JSON.stringify([event, data]),
       })
     }
 
