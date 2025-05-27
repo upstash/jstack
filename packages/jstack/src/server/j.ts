@@ -2,7 +2,8 @@ import { cors } from "hono/cors"
 import { HTTPException } from "hono/http-exception"
 import { Env, HTTPResponseError, MiddlewareHandler } from "hono/types"
 import { ContentfulStatusCode } from "hono/utils/http-status"
-import { ZodError } from "zod"
+import { ZodError as ZodErrorV3 } from "zod"
+import { ZodError as ZodErrorV4 } from "zod/v4"
 import { mergeRouters } from "./merge-routers"
 import { Procedure } from "./procedure"
 import { Router } from "./router"
@@ -12,7 +13,7 @@ const router = <
   T extends Record<string, OperationType<any, any>>,
   E extends Env,
 >(
-  procedures: T = {} as T
+  procedures: T = {} as T,
 ): Router<T, E> => {
   return new Router(procedures)
 }
@@ -21,7 +22,7 @@ const router = <
  * Adapts a Hono middleware to be compatible with the type-safe middleware format
  */
 export function fromHono<E extends Env = any>(
-  honoMiddleware: MiddlewareHandler<any>
+  honoMiddleware: MiddlewareHandler<any>,
 ): MiddlewareFunction<any, void, E> {
   return async ({ c, next }) => {
     await honoMiddleware(c, async () => {
@@ -36,11 +37,11 @@ class JStack {
     return {
       /**
        * Type-safe router factory function that creates a new router instance.
-       * 
+       *
        * @template T - Record of operation types (get/post/websockets)
        * @template E - Environment type for the router
        * @returns {Router<T, E>} A new router instance with type-safe procedure definitions
-       * 
+       *
        * @example
        * const userRouter = router({
        *   getUser: publicProcedure
@@ -48,7 +49,7 @@ class JStack {
        *     .get(async ({ input }) => {
        *       return { id: input.id, name: "John Doe" }
        *     }),
-       *   
+       *
        *   createUser: publicProcedure
        *     .input(z.object({ name: z.string() }))
        *     .post(async ({ input }) => {
@@ -59,7 +60,7 @@ class JStack {
       router,
       mergeRouters,
       middleware: <T = {}, R = void>(
-        middleware: MiddlewareFunction<T, R, E>
+        middleware: MiddlewareFunction<T, R, E>,
       ): MiddlewareFunction<T, R, E> => middleware,
       fromHono,
       procedure: new Procedure<E>(),
@@ -81,7 +82,7 @@ class JStack {
         }),
         /**
          * Global error handler for API endpoints.
-         * 
+         *
          * @example
          * // Client-side error handling
          * const { mutate } = useMutation({
@@ -97,7 +98,7 @@ class JStack {
 
           if (err instanceof HTTPException) {
             return err.getResponse()
-          } else if (err instanceof ZodError) {
+          } else if (err instanceof ZodErrorV3 || err instanceof ZodErrorV4) {
             const httpError = new HTTPException(422, {
               message: "Validation error",
               cause: err,
@@ -110,7 +111,7 @@ class JStack {
               {
                 message: err.message || "API Error",
                 cause: err,
-              }
+              },
             )
 
             return httpError.getResponse()

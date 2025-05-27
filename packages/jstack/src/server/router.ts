@@ -4,7 +4,7 @@ import { HTTPException } from "hono/http-exception"
 import { Env, ErrorHandler, Handler, MiddlewareHandler } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
 import { logger, ServerSocket } from "jstack-shared"
-import { z } from "zod"
+import { z } from "zod/v4"
 import { IO } from "./io"
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware"
 import {
@@ -42,35 +42,35 @@ export type MergeRoutes<T> = {
 
 export type RouterSchema<T extends Record<string, any>> = {
   [K in keyof T]: T[K] extends WebSocketOperation<any, any>
-  ? {
-    $get: {
-      input: InferInput<T[K]>
-      output: {}
-      incoming: NonNullable<T[K]["incoming"]>
-      outgoing: NonNullable<T[K]["outgoing"]>
-      outputFormat: "ws"
-      status: StatusCode
-    }
-  }
-  : T[K] extends GetOperation<any, any>
-  ? {
-    $get: {
-      input: InferInput<T[K]>
-      output: ReturnType<T[K]["handler"]>
-      outputFormat: "json"
-      status: StatusCode
-    }
-  }
-  : T[K] extends PostOperation<any, any>
-  ? {
-    $post: {
-      input: InferInput<T[K]>
-      output: ReturnType<T[K]["handler"]>
-      outputFormat: "json"
-      status: StatusCode
-    }
-  }
-  : never
+    ? {
+        $get: {
+          input: InferInput<T[K]>
+          output: {}
+          incoming: NonNullable<T[K]["incoming"]>
+          outgoing: NonNullable<T[K]["outgoing"]>
+          outputFormat: "ws"
+          status: StatusCode
+        }
+      }
+    : T[K] extends GetOperation<any, any>
+      ? {
+          $get: {
+            input: InferInput<T[K]>
+            output: ReturnType<T[K]["handler"]>
+            outputFormat: "json"
+            status: StatusCode
+          }
+        }
+      : T[K] extends PostOperation<any, any>
+        ? {
+            $post: {
+              input: InferInput<T[K]>
+              output: ReturnType<T[K]["handler"]>
+              outputFormat: "json"
+              status: StatusCode
+            }
+          }
+        : never
 }
 
 export type OperationSchema<T> =
@@ -381,21 +381,21 @@ export class Router<
 
           handler.onConnect?.({ socket })
 
-            server.onclose = async () => {
-              socket.close()
-              await handler.onDisconnect?.({ socket })
-            }
+          server.onclose = async () => {
+            socket.close()
+            await handler.onDisconnect?.({ socket })
+          }
 
-            server.onerror = async (error) => {
-              socket.close()
-              await handler.onError?.({ socket, error })
-            }
+          server.onerror = async (error) => {
+            socket.close()
+            await handler.onError?.({ socket, error })
+          }
 
-            const eventSchema = z.tuple([z.string(), z.unknown()])
-            server.onmessage = async (event) => {
-              try {
-                const rawData = z.string().parse(event.data)
-                const parsedData = JSON.parse(rawData)
+          const eventSchema = z.tuple([z.string(), z.unknown()])
+          server.onmessage = async (event) => {
+            try {
+              const rawData = z.string().parse(event.data)
+              const parsedData = JSON.parse(rawData)
 
               const [eventName, eventData] = eventSchema.parse(parsedData)
 
@@ -404,11 +404,11 @@ export class Router<
                 return
               }
 
-                socket.handleEvent(eventName, eventData)
-              } catch (err) {
-                logger.error("Failed to process message:", err)
-              }
+              socket.handleEvent(eventName, eventData)
+            } catch (err) {
+              logger.error("Failed to process message:", err)
             }
+          }
 
           return new Response(null, {
             status: 101,

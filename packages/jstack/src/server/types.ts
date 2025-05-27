@@ -1,6 +1,7 @@
 import { Context, TypedResponse } from "hono"
 import type superjson from "superjson"
-import { z } from "zod"
+import { z as zV3 } from "zod"
+import { z as zV4 } from "zod/v4"
 
 import { Env, Input } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
@@ -109,7 +110,7 @@ export type GetOperation<
   E extends Env = any,
 > = {
   type: "get"
-  schema?: z.ZodType<Schema> | void
+  schema?: zV3.ZodType<Schema> | zV4.ZodType<Schema> | void
   handler: <Input>({
     c,
     ctx,
@@ -130,7 +131,7 @@ export type PostOperation<
   E extends Env = any,
 > = {
   type: "post"
-  schema?: z.ZodType<Schema> | void
+  schema?: zV3.ZodType<Schema> | zV4.ZodType<Schema> | void
   handler: <Input, Output>({
     ctx,
     c,
@@ -146,14 +147,15 @@ export type OperationType<
   I extends Record<string, any>,
   O extends Record<string, unknown>,
   E extends Env = any,
-> =
-  | GetOperation<I, O, E>
-  | PostOperation<I, O, E>
-  | WebSocketOperation<I, O, E>
+> = GetOperation<I, O, E> | PostOperation<I, O, E> | WebSocketOperation<I, O, E>
 
 export type InferInput<T> =
-  T extends OperationType<infer I, any>
-    ? I extends z.ZodTypeAny
-      ? z.infer<I>
-      : I
-    : void
+  T extends OperationType<infer I, any> ? InferZodType<I, I> : void
+
+export type InferZodType<S, T = void> = S extends zV3.ZodTypeAny
+  ? zV3.infer<S>
+  : S extends zV4.ZodType
+    ? zV4.infer<S>
+    : T
+
+export type ZodAny = zV3.ZodTypeAny | zV4.ZodType
