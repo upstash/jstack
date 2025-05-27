@@ -1,6 +1,8 @@
 import { Env } from "hono/types"
 import { StatusCode } from "hono/utils/http-status"
 import superjson from "superjson"
+import type { ZodType as ZodV3Type } from "zod"
+import type { ZodType as ZodV4Type } from "zod/v4"
 import { IO } from "./io"
 import {
   ContextWithSuperJSON,
@@ -13,8 +15,6 @@ import {
   type InferZodType,
   type ZodAny,
 } from "./types"
-import type { ZodType as ZodV3Type } from "zod"
-import type { ZodType as ZodV4Type } from "zod/v4"
 
 type OptionalPromise<T> = T | Promise<T>
 
